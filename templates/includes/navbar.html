@@ -1,7 +1,10 @@
+{% load static %}
 <!-- Navigation Bar - Reusable Component -->
 <nav class="navbar">
     <div class="nav-container">
-        <a href="/" class="logo">🏆 ML Tournament System</a>
+        <a href="/" class="logo">
+            <img src="{% static 'image/sklogo.png' %}" alt="SK Logo" class="logo-image">
+        </a>
         <ul class="nav-menu">
             <li>
                 <a href="{% url 'players:add' %}" class="nav-link {% if 'players/add' in request.path %}active{% endif %}" title="Add Player">
@@ -72,12 +75,21 @@
     }
     
     .logo {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #667eea;
         text-decoration: none;
-        letter-spacing: -0.5px;
-        white-space: nowrap;
+        display: flex;
+        align-items: center;
+    }
+    
+    .logo-image {
+        height: 40px;
+        width: auto;
+        max-width: 150px;
+        object-fit: contain;
+        transition: opacity 0.3s ease;
+    }
+    
+    .logo-image:hover {
+        opacity: 0.8;
     }
     
     .nav-menu {
