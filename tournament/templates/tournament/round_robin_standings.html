@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standings - {{ tournament.name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .standings-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #666;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .rank-1 {
+            background: #ffd70020;
+        }
+        
+        .rank-2 {
+            background: #c0c0c020;
+        }
+        
+        .rank-3 {
+            background: #cd7f3220;
+        }
+        
+        .team-name {
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container">
+        <div class="standings-card">
+            <div class="header">
+                <h1>📊 {{ tournament.name }} - Standings</h1>
+                <p>Round Robin Tournament Rankings</p>
+                <a href="{% url 'tournament:detail' tournament.id %}" class="back-link">← Back to Tournament</a>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if standings %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Team</th>
+                            <th>Played</th>
+                            <th>Wins</th>
+                            <th>Losses</th>
+                            <th>Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for team in standings %}
+                            <tr class="rank-{{ forloop.counter }}{% if forloop.counter <= 3 %} rank-{{ forloop.counter }}{% endif %}">
+                                <td>{{ forloop.counter }}</td>
+                                <td class="team-name">{{ team.team.name }}</td>
+                                <td>{{ team.matches_played }}</td>
+                                <td>{{ team.wins }}</td>
+                                <td>{{ team.losses }}</td>
+                                <td><strong>{{ team.points }}</strong></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="text-align: center; color: #999; padding: 2rem;">No completed matches yet. Standings will appear once matches are played.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

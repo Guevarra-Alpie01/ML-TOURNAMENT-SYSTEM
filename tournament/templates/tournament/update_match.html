@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Match - ML Tournament System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .update-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .update-card h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .match-info {
+            background: #e8eaff;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .match-info p {
+            margin: 0.5rem 0;
+            color: #333;
+        }
+        
+        .format-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .teams-container {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .team-box {
+            flex: 1;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .team-a-box {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        
+        .team-b-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        
+        .team-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .score-inputs {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .score-input {
+            flex: 1;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .radio-option {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .radio-option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+        
+        .radio-option input[type="radio"] {
+            margin-right: 0.5rem;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-submit:hover {
+            background: #218838;
+        }
+        
+        .btn-cancel {
+            width: 100%;
+            padding: 0.75rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .required-wins {
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .teams-container {
+                flex-direction: column;
+            }
+            
+            .score-inputs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container">
+        <div class="update-card">
+            <h1>Update Match Result</h1>
+            
+            <div class="match-info">
+                <p><strong>Tournament:</strong> {{ match.tournament.name }}</p>
+                <p><strong>Round:</strong> {{ match.round_number }} - {{ match.get_stage_display }}</p>
+                <p><strong>Format:</strong> <span class="format-badge">{{ match.get_match_format_display }}</span></p>
+                <p><strong>Required Wins:</strong> {{ match.get_required_wins }} games to win the match</p>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="teams-container">
+                    <div class="team-box team-a-box">
+                        <div class="team-name">{{ match.team_a.name }}</div>
+                        <div class="radio-option">
+                            <input type="radio" name="winner" value="{{ match.team_a.id }}" id="winner_a" required>
+                            <label for="winner_a">Select as Winner</label>
+                        </div>
+                    </div>
+                    
+                    <div class="team-box team-b-box">
+                        <div class="team-name">{{ match.team_b.name }}</div>
+                        <div class="radio-option">
+                            <input type="radio" name="winner" value="{{ match.team_b.id }}" id="winner_b" required>
+                            <label for="winner_b">Select as Winner</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="score-inputs">
+                    <div class="score-input">
+                        <label for="team_a_score">{{ match.team_a.name }} Score</label>
+                        <input type="number" name="team_a_score" id="team_a_score" class="form-control" 
+                               min="0" max="3" value="0" required>
+                    </div>
+                    <div class="score-input">
+                        <label for="team_b_score">{{ match.team_b.name }} Score</label>
+                        <input type="number" name="team_b_score" id="team_b_score" class="form-control" 
+                               min="0" max="3" value="0" required>
+                    </div>
+                </div>
+                
+                <div class="required-wins">
+                    {% if match.match_format == 'bo1' %}
+                        <p>💡 Winner must have 1 point, loser 0 points</p>
+                    {% elif match.match_format == 'bo3' %}
+                        <p>💡 Winner must have 2 points (e.g., 2-0 or 2-1)</p>
+                    {% elif match.match_format == 'bo5' %}
+                        <p>💡 Winner must have 3 points (e.g., 3-0, 3-1, or 3-2)</p>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn-submit">Submit Result</button>
+                <a href="{% url 'tournament:detail' match.tournament.id %}" class="btn-cancel">Cancel</a>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Add validation for scores based on format
+        const format = "{{ match.match_format }}";
+        const teamAScoreInput = document.getElementById('team_a_score');
+        const teamBScoreInput = document.getElementById('team_b_score');
+        
+        function validateScores() {
+            let maxScore = 0;
+            if (format === 'bo1') maxScore = 1;
+            else if (format === 'bo3') maxScore = 2;
+            else if (format === 'bo5') maxScore = 3;
+            
+            if (parseInt(teamAScoreInput.value) > maxScore) {
+                teamAScoreInput.value = maxScore;
+            }
+            if (parseInt(teamBScoreInput.value) > maxScore) {
+                teamBScoreInput.value = maxScore;
+            }
+        }
+        
+        teamAScoreInput.addEventListener('change', validateScores);
+        teamBScoreInput.addEventListener('change', validateScores);
+    </script>
+</body>
+</html>

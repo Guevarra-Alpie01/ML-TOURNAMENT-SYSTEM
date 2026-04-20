@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete {{ team.name }} - ML Tournament System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .confirm-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .warning-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+        
+        .team-name {
+            font-weight: bold;
+            color: #dc3545;
+            font-size: 1.2rem;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .btn-danger {
+            flex: 1;
+            padding: 0.75rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-cancel {
+            flex: 1;
+            padding: 0.75rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container">
+        <div class="confirm-card">
+            <div class="warning-icon">⚠️</div>
+            <h2>Delete Team</h2>
+            <p>Are you sure you want to delete <span class="team-name">"{{ team.name }}"</span>?</p>
+            <p style="font-size: 0.9rem;">This action cannot be undone and will remove all team members.</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="button-group">
+                    <button type="submit" class="btn-danger">Yes, Delete Team</button>
+                    <a href="{% url 'teams:team_list' %}" class="btn-cancel">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

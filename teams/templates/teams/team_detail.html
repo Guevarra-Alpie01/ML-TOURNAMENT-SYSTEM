@@ -1,0 +1,312 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ team.name }} Details - ML Tournament System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .team-header {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .team-name {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .team-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .members-section, .roles-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        
+        .members-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .member-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+        
+        .member-card:hover {
+            transform: translateX(5px);
+            background: #e8eaff;
+        }
+        
+        .member-info h3 {
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+        
+        .member-rank {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .member-roles {
+            text-align: right;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 0.25rem;
+        }
+        
+        .secondary-badge {
+            background: #6c757d;
+        }
+        
+        .roles-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .role-item {
+            flex: 1;
+            padding: 0.75rem;
+            background: #e8eaff;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .role-item h4 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .role-player {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-remove:hover {
+            background: #c82333;
+        }
+        
+        .btn-back {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .btn-add {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-left: 1rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container">
+        <div class="team-header">
+            <h1 class="team-name">{{ team.name }}</h1>
+            <div class="team-stats">
+                <div class="stat">
+                    <div class="stat-value">{{ members|length }}/5</div>
+                    <div class="stat-label">Players</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">{{ team.get_average_rank_score|floatformat:1 }}</div>
+                    <div class="stat-label">Avg. Rank Score</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">{{ team.get_team_strength_score|floatformat:1 }}</div>
+                    <div class="stat-label">Team Strength</div>
+                </div>
+            </div>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <div class="members-section">
+            <h2 class="section-title">👥 Team Members</h2>
+            <div class="members-grid">
+                {% for member in members %}
+                <div class="member-card">
+                    <div class="member-info">
+                        <h3>{{ member.player.name }}</h3>
+                        <div class="member-rank">
+                            Current: {{ member.player.get_current_rank_display }} | 
+                            Highest: {{ member.player.get_highest_rank_display }}
+                        </div>
+                    </div>
+                    <div class="member-roles">
+                        <span class="role-badge">{{ member.player.get_primary_role_display }}</span>
+                        {% for role in member.player.get_secondary_roles_list %}
+                            <span class="role-badge secondary-badge">{{ role }}</span>
+                        {% endfor %}
+                        <form method="post" action="{% url 'teams:remove_member' team.id member.id %}" style="margin-top: 0.5rem;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-remove" onclick="return confirm('Remove {{ member.player.name }} from team?')">Remove</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="text-align: center; color: #999;">No players in this team yet</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="roles-section">
+            <h2 class="section-title">🎯 Role Distribution</h2>
+            <div class="roles-list">
+                <div class="role-item">
+                    <h4>💰 Gold Lane</h4>
+                    {% for member in members %}
+                        {% if member.player.primary_role == 'gold_lane' or 'gold_lane' in member.player.get_secondary_roles_list %}
+                            <div class="role-player">{{ member.player.name }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="role-item">
+                    <h4>🌿 Exp Lane</h4>
+                    {% for member in members %}
+                        {% if member.player.primary_role == 'exp_lane' or 'exp_lane' in member.player.get_secondary_roles_list %}
+                            <div class="role-player">{{ member.player.name }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="role-item">
+                    <h4>🔮 Mage</h4>
+                    {% for member in members %}
+                        {% if member.player.primary_role == 'mage' or 'mage' in member.player.get_secondary_roles_list %}
+                            <div class="role-player">{{ member.player.name }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="role-item">
+                    <h4>🛡️ Tank/Support</h4>
+                    {% for member in members %}
+                        {% if member.player.primary_role == 'tank_support' or 'tank_support' in member.player.get_secondary_roles_list %}
+                            <div class="role-player">{{ member.player.name }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="role-item">
+                    <h4>🗡️ Jungler</h4>
+                    {% for member in members %}
+                        {% if member.player.primary_role == 'jungler' or 'jungler' in member.player.get_secondary_roles_list %}
+                            <div class="role-player">{{ member.player.name }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{% url 'teams:team_list' %}" class="btn-back">← Back to Teams</a>
+            {% if not team.is_full %}
+                <a href="{% url 'teams:add_member' team.id %}" class="btn-add">+ Add Player</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

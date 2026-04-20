@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Balanced Teams - ML Tournament System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .form-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-header p {
+            color: #666;
+        }
+        
+        .info-box {
+            background: #e8eaff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .info-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .info-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        .requirements {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .requirements h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .requirements ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .requirements li {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            background: white;
+            border-radius: 5px;
+            color: #666;
+        }
+        
+        .requirements li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .btn-generate {
+            width: 100%;
+            padding: 1rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-generate:hover {
+            background: #218838;
+        }
+        
+        .btn-cancel {
+            width: 100%;
+            padding: 0.75rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h1>⚖️ Generate Balanced Teams</h1>
+                <p>AI-powered team balancing based on ranks and roles</p>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="info-box">
+                <div class="info-number">{{ player_count }}</div>
+                <div class="info-label">Total Players Available</div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-number">{{ teams_needed }}</div>
+                <div class="info-label">Teams that can be formed</div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-number">{{ remaining_players }}</div>
+                <div class="info-label">Players will be on waiting list</div>
+            </div>
+            
+            <div class="requirements">
+                <h3>🎯 Team Composition Requirements:</h3>
+                <ul>
+                    <li>5 players per team (Gold Lane, Exp Lane, Mage, Tank/Support, Jungler)</li>
+                    <li>Balanced rank distribution (Warrior to Mythical Glory)</li>
+                    <li>Each team will have at least one player for each role</li>
+                    <li>Teams are balanced based on current and highest rank achieved</li>
+                </ul>
+            </div>
+            
+            {% if player_count >= 5 %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-generate">🚀 Generate Balanced Teams</button>
+                </form>
+            {% else %}
+                <div class="alert alert-warning">
+                    ⚠️ Not enough players to form a team. Need at least 5 players. 
+                    Current players: {{ player_count }}/5
+                </div>
+            {% endif %}
+            
+            <a href="{% url 'teams:team_list' %}" class="btn-cancel">Cancel</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,317 @@
+{% extends 'includes/base.html' %}
+
+{% block title %}Create Tournament{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-card">
+        <h1>Create New Tournament</h1>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Tournament Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" class="form-control" rows="4" placeholder="Optional: Add tournament description..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Tournament Format</label>
+                <select name="format" class="form-control" id="formatSelect">
+                    <option value="">Auto-suggest (Recommended)</option>
+                    {% for value, label in formats %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <div class="format-info" id="formatInfo">
+                    <p class="info-text">💡 Auto-suggest will choose based on number of teams selected</p>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Select Teams (Minimum 2)</label>
+                <div class="teams-list">
+                    {% for team in teams %}
+                        <label class="team-checkbox">
+                            <input type="checkbox" name="teams" value="{{ team.id }}" class="team-select">
+                            <span class="team-name">{{ team.name }}</span>
+                            <span class="team-members">({{ team.get_member_count }}/5 players)</span>
+                        </label>
+                    {% empty %}
+                        <p class="no-teams">No teams available. Please <a href="{% url 'teams:create' %}">create a team</a> first.</p>
+                    {% endfor %}
+                </div>
+                <div class="selected-info">
+                    <span id="selectedCount">0</span> teams selected
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn-submit" id="submitBtn" disabled>Create Tournament</button>
+                <a href="{% url 'tournament:list' %}" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 700px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .form-card h1 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .format-info {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .info-text {
+        color: #667eea;
+        background: #e8eaff;
+        padding: 0.5rem;
+        border-radius: 5px;
+        display: inline-block;
+    }
+    
+    .teams-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 0.75rem;
+        max-height: 350px;
+        overflow-y: auto;
+        padding: 0.5rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+    
+    .team-checkbox {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .team-checkbox:hover {
+        background: #f0f0f0;
+        transform: translateX(5px);
+    }
+    
+    .team-checkbox input {
+        margin-right: 0.75rem;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    .team-name {
+        flex: 1;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .team-members {
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    .selected-info {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #667eea;
+        font-weight: 600;
+        text-align: right;
+    }
+    
+    .no-teams {
+        text-align: center;
+        padding: 2rem;
+        color: #999;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn-submit, .btn-cancel {
+        flex: 1;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .btn-submit {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-submit:hover:not(:disabled) {
+        background: #218838;
+        transform: translateY(-2px);
+    }
+    
+    .btn-submit:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 1rem;
+        }
+        
+        .teams-list {
+            grid-template-columns: 1fr;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+    // Update selected teams count and format info
+    const teamCheckboxes = document.querySelectorAll('.team-select');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const submitBtn = document.getElementById('submitBtn');
+    const formatSelect = document.getElementById('formatSelect');
+    const formatInfo = document.getElementById('formatInfo');
+    
+    function updateSelectedCount() {
+        const selected = document.querySelectorAll('.team-select:checked');
+        const count = selected.length;
+        selectedCountSpan.textContent = count;
+        
+        // Enable/disable submit button based on team count
+        submitBtn.disabled = count < 2;
+        
+        // Show format suggestion based on team count
+        if (count > 0) {
+            let suggestedFormat = '';
+            if (count <= 8) {
+                suggestedFormat = 'Single Elimination';
+            } else if (count <= 16) {
+                suggestedFormat = 'Double Elimination';
+            } else {
+                suggestedFormat = 'Round Robin';
+            }
+            
+            if (formatSelect.value === '') {
+                formatInfo.innerHTML = `<p class="info-text">💡 Based on ${count} teams, suggested format: <strong>${suggestedFormat}</strong></p>`;
+            } else {
+                formatInfo.innerHTML = `<p class="info-text">📋 Selected format: <strong>${formatSelect.options[formatSelect.selectedIndex].text}</strong> for ${count} teams</p>`;
+            }
+        } else {
+            formatInfo.innerHTML = '<p class="info-text">💡 Auto-suggest will choose based on number of teams selected</p>';
+        }
+    }
+    
+    function updateFormatInfo() {
+        const selected = document.querySelectorAll('.team-select:checked');
+        const count = selected.length;
+        
+        if (count > 0) {
+            let suggestedFormat = '';
+            if (count <= 8) {
+                suggestedFormat = 'Single Elimination';
+            } else if (count <= 16) {
+                suggestedFormat = 'Double Elimination';
+            } else {
+                suggestedFormat = 'Round Robin';
+            }
+            
+            if (formatSelect.value === '') {
+                formatInfo.innerHTML = `<p class="info-text">💡 Based on ${count} teams, suggested format: <strong>${suggestedFormat}</strong></p>`;
+            } else {
+                const selectedFormat = formatSelect.options[formatSelect.selectedIndex].text;
+                formatInfo.innerHTML = `<p class="info-text">📋 Selected format: <strong>${selectedFormat}</strong> for ${count} teams</p>`;
+            }
+        }
+    }
+    
+    teamCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+    
+    formatSelect.addEventListener('change', updateFormatInfo);
+    
+    // Initial update
+    updateSelectedCount();
+    
+    // Prevent form submission if less than 2 teams selected
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const selected = document.querySelectorAll('.team-select:checked');
+        if (selected.length < 2) {
+            e.preventDefault();
+            alert('Please select at least 2 teams to create a tournament.');
+        }
+    });
+</script>
+{% endblock %}

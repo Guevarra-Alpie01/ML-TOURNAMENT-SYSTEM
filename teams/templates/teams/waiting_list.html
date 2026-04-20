@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting List - ML Tournament System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .waiting-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #666;
+        }
+        
+        .waiting-list {
+            margin: 2rem 0;
+        }
+        
+        .waiting-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .player-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .player-rank {
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+        
+        .player-reason {
+            color: #999;
+            font-size: 0.85rem;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        
+        .btn-clear {
+            width: 100%;
+            padding: 0.75rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        .btn-clear:hover {
+            background: #c82333;
+        }
+        
+        .btn-back {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container">
+        <div class="waiting-card">
+            <div class="header">
+                <h1>⏳ Waiting List</h1>
+                <p>Players waiting to be assigned to teams</p>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if waiting_players %}
+                <div class="waiting-list">
+                    {% for waiting in waiting_players %}
+                    <div class="waiting-item">
+                        <div>
+                            <div class="player-name">{{ waiting.player.name }}</div>
+                            <div class="player-rank">{{ waiting.player.get_current_rank_display }}</div>
+                            <div class="player-reason">{{ waiting.reason }}</div>
+                        </div>
+                        <div class="player-rank">
+                            {{ waiting.added_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-clear" onclick="return confirm('Clear all players from waiting list?')">Clear Waiting List</button>
+                </form>
+            {% else %}
+                <div class="empty-message">
+                    <p>No players in waiting list</p>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">When teams are generated, extra players will appear here</p>
+                </div>
+            {% endif %}
+            
+            <a href="{% url 'teams:team_list' %}" class="btn-back">← Back to Teams</a>
+        </div>
+    </div>
+</body>
+</html>

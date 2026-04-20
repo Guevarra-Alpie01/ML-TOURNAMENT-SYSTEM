@@ -1,0 +1,253 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teams - ML Tournament System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s;
+            display: inline-block;
+            margin-left: 1rem;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .team-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .team-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .team-header {
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .team-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .team-badge {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .players-list {
+            margin: 1rem 0;
+        }
+        
+        .player-item {
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .player-role {
+            font-size: 0.85rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .team-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-sm {
+            flex: 1;
+            padding: 0.5rem;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .waiting-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .waiting-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .waiting-player {
+            background: #ffc107;
+            color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Teams Management</h1>
+            <div>
+                <a href="{% url 'teams:create_team' %}" class="btn-primary">➕ Create Team Manually</a>
+                <a href="{% url 'teams:generate_teams' %}" class="btn-success">⚖️ Generate Balanced Teams</a>
+            </div>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if teams %}
+        <div class="teams-grid">
+            {% for team in teams %}
+            <div class="team-card">
+                <div class="team-header">
+                    <span class="team-name">{{ team.name }}</span>
+                    <span class="team-badge">{{ team.get_member_count }}/5 Players</span>
+                </div>
+                
+                <div class="players-list">
+                    {% for member in team.team_members.all %}
+                    <div class="player-item">
+                        <span>{{ member.player.name }}</span>
+                        <span class="player-role">{{ member.player.get_primary_role_display }}</span>
+                    </div>
+                    {% empty %}
+                    <p style="color: #999; text-align: center;">No players yet</p>
+                    {% endfor %}
+                </div>
+                
+                <div class="team-actions">
+                    <a href="{% url 'teams:team_detail' team.id %}" class="btn-sm" style="background: #17a2b8; color: white;">View</a>
+                    {% if not team.is_full %}
+                    <a href="{% url 'teams:add_member' team.id %}" class="btn-sm" style="background: #28a745; color: white;">Add Player</a>
+                    {% endif %}
+                    <a href="{% url 'teams:delete_team' team.id %}" class="btn-sm" style="background: #dc3545; color: white;">Delete</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            No teams created yet. Click "Create Team Manually" or "Generate Balanced Teams" to get started!
+        </div>
+        {% endif %}
+        
+        {% if waiting_players %}
+        <div class="waiting-section">
+            <h3>⏳ Waiting List</h3>
+            <p>Players waiting to be assigned to teams:</p>
+            <div class="waiting-list">
+                {% for waiting in waiting_players %}
+                <div class="waiting-player">
+                    {{ waiting.player.name }} - {{ waiting.player.get_current_rank_display }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

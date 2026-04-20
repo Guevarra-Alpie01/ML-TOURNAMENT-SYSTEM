@@ -1,0 +1,258 @@
+{% extends 'includes/base.html' %}
+
+{% block title %}Generate Matches - {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="confirm-card">
+        <h2>Generate Tournament Matches</h2>
+        <p>Are you sure you want to generate matches for <strong>{{ tournament.name }}</strong>?</p>
+        <p><strong class="warning-text">Warning:</strong> This will delete all existing matches for this tournament and cannot be undone.</p>
+        
+        <div class="info-box">
+            <div class="info-row">
+                <span class="info-label">Tournament Format:</span>
+                <span class="info-value">{{ tournament.get_format_display }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Teams:</span>
+                <span class="info-value">{{ tournament.get_team_count }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Expected Matches:</span>
+                <span class="info-value" id="expectedMatches">Calculating...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Expected Rounds:</span>
+                <span class="info-value" id="expectedRounds">Calculating...</span>
+            </div>
+            {% if tournament.get_suggested_format != tournament.format %}
+                <div class="info-row suggestion">
+                    <span class="info-label">💡 Suggestion:</span>
+                    <span class="info-value">{{ tournament.get_suggested_format }} might work better for {{ tournament.get_team_count }} teams</span>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="format-details" id="formatDetails">
+            <!-- Format-specific details will be inserted here -->
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="button-group">
+                <button type="submit" class="btn-danger" onclick="return confirm('Are you absolutely sure? This will delete all existing matches for this tournament.');">
+                    🔄 Generate Matches
+                </button>
+                <a href="{% url 'tournament:detail' tournament.id %}" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 700px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+    
+    .confirm-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .confirm-card h2 {
+        color: #333;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .warning-text {
+        color: #dc3545;
+    }
+    
+    .info-box {
+        background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1.5rem 0;
+        border: 1px solid #667eea30;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #667eea;
+    }
+    
+    .info-value {
+        color: #333;
+    }
+    
+    .suggestion {
+        background: #fff3cd;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 5px;
+        border-bottom: none;
+    }
+    
+    .suggestion .info-label,
+    .suggestion .info-value {
+        color: #856404;
+    }
+    
+    .format-details {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+    }
+    
+    .format-details h4 {
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+    
+    .format-details ul {
+        margin-left: 1.5rem;
+        color: #666;
+    }
+    
+    .format-details li {
+        margin: 0.25rem 0;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-danger, .btn-cancel {
+        flex: 1;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 1rem;
+        }
+        
+        .info-row {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+    // Calculate and display expected matches based on format
+    const numTeams = {{ tournament.get_team_count }};
+    const format = "{{ tournament.format }}";
+    
+    function calculateExpectedMatches() {
+        let matches = 0;
+        let rounds = 0;
+        let details = '';
+        
+        if (format === 'single_elimination') {
+            matches = numTeams - 1;
+            rounds = Math.ceil(Math.log2(numTeams));
+            details = `
+                <h4>📊 Single Elimination Details:</h4>
+                <ul>
+                    <li>Perfect bracket size: ${Math.pow(2, rounds)} teams</li>
+                    <li>Number of byes: ${Math.pow(2, rounds) - numTeams}</li>
+                    <li>Total matches: ${matches}</li>
+                    <li>Total rounds: ${rounds}</li>
+                    <li>Each team is eliminated after one loss</li>
+                    <li>Fastest format - great for large tournaments</li>
+                </ul>
+            `;
+        } else if (format === 'double_elimination') {
+            matches = (2 * numTeams) - 1;
+            const perfectSize = Math.pow(2, Math.ceil(Math.log2(numTeams)));
+            rounds = (Math.ceil(Math.log2(numTeams)) * 2) - 1;
+            details = `
+                <h4>📊 Double Elimination Details:</h4>
+                <ul>
+                    <li>Perfect bracket size: ${perfectSize} teams</li>
+                    <li>Number of byes: ${perfectSize - numTeams}</li>
+                    <li>Total matches: ${matches}</li>
+                    <li>Total rounds: ${rounds}</li>
+                    <li>Teams need 2 losses to be eliminated</li>
+                    <li>Features Winners and Losers brackets</li>
+                    <li>Grand Finals with potential bracket reset</li>
+                </ul>
+            `;
+        } else if (format === 'round_robin') {
+            matches = (numTeams * (numTeams - 1)) / 2;
+            rounds = 1;
+            details = `
+                <h4>📊 Round Robin Details:</h4>
+                <ul>
+                    <li>Total matches: ${matches}</li>
+                    <li>Each team plays ${numTeams - 1} matches</li>
+                    <li>Most fair format - every team plays everyone</li>
+                    <li>Best for ${numTeams <= 8 ? 'small' : 'larger'} tournaments</li>
+                    <li>Results based on points/wins</li>
+                </ul>
+            `;
+        }
+        
+        document.getElementById('expectedMatches').textContent = matches;
+        document.getElementById('expectedRounds').textContent = rounds;
+        document.getElementById('formatDetails').innerHTML = details;
+    }
+    
+    // Calculate on page load
+    calculateExpectedMatches();
+</script>
+{% endblock %}

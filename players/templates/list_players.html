@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Players List - ML Tournament System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+        }
+        
+        .btn-add {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .btn-add:hover {
+            background: #5a67d8;
+        }
+        
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .player-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .player-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .player-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: #e8eaff;
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 0.25rem;
+        }
+        
+        .rank-info {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .rank-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .rank-value {
+            color: #333;
+        }
+        
+        .card-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-edit, .btn-delete, .btn-view {
+            flex: 1;
+            padding: 0.5rem;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-view {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-edit {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .no-players {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 15px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container">
+        <div class="header">
+            <h1>👥 Registered Players</h1>
+            <a href="{% url 'players:add' %}" class="btn-add">+ Add New Player</a>
+        </div>
+        
+        {% if players %}
+        <div class="players-grid">
+            {% for player in players %}
+            <div class="player-card">
+                <div class="player-name">{{ player.name }}</div>
+                
+                <div>
+                    <span class="role-badge">⭐ {{ player.get_primary_role_display }}</span>
+                    {% for role in player.get_secondary_roles_list %}
+                        <span class="role-badge">{{ role }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="rank-info">
+                    <div class="rank-item">
+                        <span class="rank-label">Current Rank:</span>
+                        <span class="rank-value">{{ player.get_current_rank_display }}</span>
+                    </div>
+                    <div class="rank-item">
+                        <span class="rank-label">Highest Rank:</span>
+                        <span class="rank-value">{{ player.get_highest_rank_display }}</span>
+                    </div>
+                </div>
+                
+                <div class="card-actions">
+                    <a href="{% url 'players:detail' player.id %}" class="btn-view">View</a>
+                    <a href="{% url 'players:edit' player.id %}" class="btn-edit">Edit</a>
+                    <a href="{% url 'players:delete' player.id %}" class="btn-delete">Delete</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-players">
+            <h3>No players registered yet</h3>
+            <p>Click the "Add New Player" button to get started!</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

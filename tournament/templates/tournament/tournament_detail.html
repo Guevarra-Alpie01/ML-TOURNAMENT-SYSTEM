@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tournament.name }} - ML Tournament System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .tournament-header {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .tournament-header h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .tournament-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-warning, .btn-info, .btn-danger {
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border-radius: 5px;
+            color: white;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        /* Round Advancement Section */
+        .round-advance-section {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            border: 2px solid #667eea;
+        }
+        
+        .round-status {
+            margin-bottom: 1rem;
+        }
+        
+        .round-status h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-circle {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            margin: 1rem 0;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            border: 3px solid #667eea;
+        }
+        
+        .btn-advance {
+            background: #28a745;
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-block;
+            margin-top: 1rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-advance:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+        
+        .btn-advance.disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .btn-advance.disabled:hover {
+            transform: none;
+        }
+        
+        .champion-announcement {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .champion-announcement h2 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .champion-name {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #dc3545;
+            margin-top: 0.5rem;
+        }
+        
+        .trophy-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Matches Section */
+        .matches-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .matches-section h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .round-section {
+            margin-bottom: 2rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        
+        .round-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .round-header h3 {
+            color: #667eea;
+        }
+        
+        .round-status-badge {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1rem;
+        }
+        
+        .game-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1rem;
+            transition: transform 0.3s;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .game-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .match-teams {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+        
+        .team {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .team.winner {
+            color: #28a745;
+        }
+        
+        .vs {
+            padding: 0 0.5rem;
+            color: #999;
+            font-weight: bold;
+        }
+        
+        .match-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .score {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+        
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.in_progress {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .btn-update {
+            display: inline-block;
+            width: 100%;
+            padding: 0.5rem;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 0.85rem;
+            transition: background 0.3s;
+            margin-top: 0.75rem;
+        }
+        
+        .btn-update:hover {
+            background: #0056b3;
+        }
+        
+        .completed-badge {
+            display: inline-block;
+            width: 100%;
+            padding: 0.5rem;
+            background: #28a745;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+        }
+        
+        /* Completed Rounds Section */
+        .completed-rounds {
+            margin-top: 2rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        
+        .completed-rounds summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #667eea;
+            padding: 0.5rem;
+        }
+        
+        .completed-round {
+            opacity: 0.8;
+            margin-top: 1rem;
+        }
+        
+        .completed-game {
+            background: #f0f0f0;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .no-matches {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        
+        .back-link:hover {
+            background: #5a6268;
+        }
+        
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .match-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .progress-circle {
+                width: 70px;
+                height: 70px;
+                line-height: 70px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <div class="tournament-header">
+            <h1>{{ tournament.name }}</h1>
+            <div class="tournament-meta">
+                <span class="badge">Format: {{ tournament.get_format_display }}</span>
+                <span class="badge">Teams: {{ team_count }}</span>
+                <span class="badge">Total Games: {{ tournament.get_total_matches }}</span>
+                <span class="badge">Completed: {{ tournament.get_completed_matches }}</span>
+                <span class="badge">Current Round: {{ tournament.current_round }}</span>
+            </div>
+            <p>{{ tournament.description }}</p>
+            
+            <div class="action-buttons">
+                <a href="{% url 'tournament:generate_matches' tournament.id %}" class="btn-warning" onclick="return confirm('Generate/regenerate matches? This will delete existing matches.')">
+                    🔄 Regenerate Matches
+                </a>
+                {% if tournament.format == 'round_robin' %}
+                    <a href="{% url 'tournament:standings' tournament.id %}" class="btn-info">📊 View Standings</a>
+                {% else %}
+                    <a href="{% url 'tournament:bracket' tournament.id %}" class="btn-info">🏆 View Bracket</a>
+                {% endif %}
+                <a href="{% url 'tournament:delete' tournament.id %}" class="btn-danger" onclick="return confirm('Are you sure you want to delete tournament "{{ tournament.name }}"? This will delete all matches and data. This action cannot be undone.')">
+                    🗑️ Delete Tournament
+                </a>
+            </div>
+        </div>
+        
+        {% if tournament.format == 'single_elimination' %}
+        <!-- Round Advancement Section for Single Elimination -->
+        <div class="round-advance-section" id="roundAdvanceSection">
+            <div class="round-status">
+                <h3>Round {{ tournament.current_round }} Status</h3>
+                <div class="progress-circle" id="progressPercentage">0%</div>
+                <div id="roundStats"></div>
+            </div>
+            <div id="advanceButtonContainer"></div>
+        </div>
+        {% elif tournament.format == 'round_robin' %}
+        <!-- Round Robin Progress Section -->
+        <div class="round-advance-section">
+            <div class="round-status">
+                <h3>Round Robin Progress</h3>
+                <div class="progress-circle" id="rrProgressPercentage">
+                    {% with completed=tournament.get_completed_matches total=tournament.get_total_matches %}
+                        {% if total > 0 %}
+                            {% widthratio completed total 100 %}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div id="rrRoundStats">
+                    <p>Completed Matches: {{ tournament.get_completed_matches }} / {{ tournament.get_total_matches }}</p>
+                    {% if tournament.get_completed_matches == tournament.get_total_matches and tournament.get_total_matches > 0 %}
+                        <p style="color: #28a745; font-weight: bold;">✅ Tournament Complete! Check standings for final results.</p>
+                    {% else %}
+                        <p>⏳ Keep updating match results to complete the tournament</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Current Round Matches -->
+        <div class="matches-section">
+            {% if tournament.format == 'single_elimination' %}
+                <h2>📅 Current Round - Round {{ tournament.current_round }}</h2>
+            {% else %}
+                <h2>📅 All Matches</h2>
+            {% endif %}
+            
+            {% if matches_by_round %}
+                {% for round_num, matches in matches_by_round.items %}
+                    {% if tournament.format == 'single_elimination' %}
+                        {% if round_num == tournament.current_round %}
+                            <div class="round-section">
+                                <div class="round-header">
+                                    <h3>{{ matches.0.get_stage_display }}</h3>
+                                    <div class="round-status-badge">
+                                        {% with completed_count=match_completion_counts|get_item:round_num %}
+                                            <span>{{ completed_count }}/{{ matches|length }} Games Complete</span>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                <div class="games-grid">
+                                    {% for match in matches %}
+                                    <div class="game-card">
+                                        <div class="game-title">
+                                            {% if match.game_number %}
+                                                Game {{ match.game_number }}
+                                            {% else %}
+                                                Match {{ forloop.counter }}
+                                            {% endif %}
+                                            - {{ match.get_match_format_display }}
+                                        </div>
+                                        <div class="match-teams">
+                                            <div class="team {% if match.winner == match.team_a %}winner{% endif %}">
+                                                {{ match.team_a.name|default:"TBD" }}
+                                            </div>
+                                            <div class="vs">VS</div>
+                                            <div class="team {% if match.winner == match.team_b %}winner{% endif %}">
+                                                {{ match.team_b.name|default:"TBD" }}
+                                            </div>
+                                        </div>
+                                        <div class="match-info">
+                                            {% if match.status == 'completed' %}
+                                                <span class="score">🏆 Score: {{ match.team_a_score }} - {{ match.team_b_score }}</span>
+                                                {% if match.winner %}
+                                                    <span class="score">Winner: {{ match.winner.name }}</span>
+                                                {% endif %}
+                                            {% endif %}
+                                            <span class="status {{ match.status }}">{{ match.get_status_display }}</span>
+                                        </div>
+                                        
+                                        {% if match.status != 'completed' and match.team_a and match.team_b %}
+                                            <div>
+                                                <a href="{% url 'tournament:update_match' match.id %}" class="btn-update">
+                                                    ✏️ Update Result
+                                                </a>
+                                            </div>
+                                        {% elif match.status == 'completed' %}
+                                            <div>
+                                                <span class="completed-badge">✓ Game Complete</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <!-- Round Robin: Show all matches grouped by round -->
+                        <div class="round-section">
+                            <div class="round-header">
+                                <h3>Round {{ round_num }}</h3>
+                                <div class="round-status-badge">
+                                    {% with completed_count=match_completion_counts|get_item:round_num %}
+                                        <span>{{ completed_count }}/{{ matches|length }} Matches Complete</span>
+                                    {% endwith %}
+                                </div>
+                            </div>
+                            <div class="games-grid">
+                                {% for match in matches %}
+                                <div class="game-card">
+                                    <div class="game-title">
+                                        Match {{ match.game_number }} - {{ match.get_match_format_display }}
+                                    </div>
+                                    <div class="match-teams">
+                                        <div class="team {% if match.winner == match.team_a %}winner{% endif %}">
+                                            {{ match.team_a.name|default:"TBD" }}
+                                        </div>
+                                        <div class="vs">VS</div>
+                                        <div class="team {% if match.winner == match.team_b %}winner{% endif %}">
+                                            {{ match.team_b.name|default:"TBD" }}
+                                        </div>
+                                    </div>
+                                    <div class="match-info">
+                                        {% if match.status == 'completed' %}
+                                            <span class="score">🏆 Score: {{ match.team_a_score }} - {{ match.team_b_score }}</span>
+                                            {% if match.winner %}
+                                                <span class="score">Winner: {{ match.winner.name }}</span>
+                                            {% endif %}
+                                        {% endif %}
+                                        <span class="status {{ match.status }}">{{ match.get_status_display }}</span>
+                                    </div>
+                                    
+                                    {% if match.status != 'completed' and match.team_a and match.team_b %}
+                                        <div>
+                                            <a href="{% url 'tournament:update_match' match.id %}" class="btn-update">
+                                                ✏️ Update Result
+                                            </a>
+                                        </div>
+                                    {% elif match.status == 'completed' %}
+                                        <div>
+                                            <span class="completed-badge">✓ Match Complete</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="no-matches">
+                    <p>No games generated yet.</p>
+                    <p style="margin-top: 1rem;">Click the "Regenerate Matches" button above to create games for this tournament.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Previous Rounds (Collapsible) for Single Elimination -->
+        {% if tournament.format == 'single_elimination' and matches_by_round|length > 1 %}
+        <details class="completed-rounds">
+            <summary>📋 View Previous Rounds</summary>
+            {% for round_num, matches in matches_by_round.items %}
+                {% if round_num < tournament.current_round %}
+                    <div class="round-section completed-round">
+                        <div class="round-header">
+                            <h3>Round {{ round_num }} - {{ matches.0.get_stage_display }} (Completed)</h3>
+                        </div>
+                        <div class="games-grid">
+                            {% for match in matches %}
+                            <div class="game-card completed-game">
+                                <div class="game-title">
+                                    Game {{ match.game_number }} - {{ match.get_match_format_display }}
+                                </div>
+                                <div class="match-teams">
+                                    <div class="team {% if match.winner == match.team_a %}winner{% endif %}">
+                                        {{ match.team_a.name|default:"TBD" }}
+                                    </div>
+                                    <div class="vs">VS</div>
+                                    <div class="team {% if match.winner == match.team_b %}winner{% endif %}">
+                                        {{ match.team_b.name|default:"TBD" }}
+                                    </div>
+                                </div>
+                                <div class="match-info">
+                                    <span class="score">Final Score: {{ match.team_a_score }} - {{ match.team_b_score }}</span>
+                                    {% if match.winner %}
+                                        <span class="score">Winner: {{ match.winner.name }}</span>
+                                    {% endif %}
+                                    <span class="status completed">Completed</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </details>
+        {% endif %}
+        
+        <div style="text-align: center;">
+            <a href="{% url 'tournament:list' %}" class="back-link">← Back to Tournaments</a>
+        </div>
+    </div>
+    
+    {% if tournament.format == 'single_elimination' %}
+    <script>
+        // Function to get CSRF token from cookies
+        function getCsrfToken() {
+            var cookieValue = null;
+            var name = 'csrftoken';
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Function to check round status
+        function checkRoundStatus() {
+            var progressCircle = document.getElementById('progressPercentage');
+            var roundStats = document.getElementById('roundStats');
+            var advanceContainer = document.getElementById('advanceButtonContainer');
+            
+            if (!progressCircle) return;
+            if (!roundStats) return;
+            if (!advanceContainer) return;
+            
+            var url = "{% url 'tournament:round_status' tournament.id %}";
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('HTTP error ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                var total = data.total_matches;
+                var completed = data.completed_matches;
+                var percentage = 0;
+                
+                if (total > 0) {
+                    percentage = Math.round((completed / total) * 100);
+                }
+                
+                progressCircle.textContent = percentage + '%';
+                
+                var statusText = '';
+                if (data.all_complete) {
+                    statusText = '✅ All matches complete!';
+                } else {
+                    statusText = '⏳ Matches in progress...';
+                }
+                
+                roundStats.innerHTML = '<p>Completed Matches: ' + completed + ' / ' + total + '</p>' +
+                                      '<p>Status: ' + statusText + '</p>';
+                
+                if (data.is_complete) {
+                    advanceContainer.innerHTML = '<div class="champion-announcement">' +
+                        '<div class="trophy-icon">🏆</div>' +
+                        '<h2>TOURNAMENT COMPLETE!</h2>' +
+                        '<div class="champion-name">Champion: ' + (data.champion || 'Unknown') + '</div>' +
+                        '</div>';
+                } else if (data.all_complete && data.next_round_exists) {
+                    advanceContainer.innerHTML = '<form method="post" action="{% url 'tournament:advance_round' tournament.id %}" onsubmit="return confirm(\'Advance to next round? All current round matches are complete.\');">' +
+                        '<input type="hidden" name="csrfmiddlewaretoken" value="' + getCsrfToken() + '">' +
+                        '<button type="submit" class="btn-advance">▶️ Advance to Round ' + (data.current_round + 1) + '</button>' +
+                        '</form>';
+                } else if (!data.all_complete && total > 0) {
+                    advanceContainer.innerHTML = '<button class="btn-advance disabled" disabled>⏳ Complete all matches to advance</button>';
+                } else if (total === 0) {
+                    advanceContainer.innerHTML = '<button class="btn-advance disabled" disabled>⚠️ No matches found. Generate matches first.</button>';
+                }
+            })
+            .catch(function(error) {
+                console.error('Error fetching round status:', error);
+                if (roundStats) {
+                    roundStats.innerHTML = '<p style="color: red;">Error loading status. Please refresh the page.</p>';
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            checkRoundStatus();
+            setInterval(checkRoundStatus, 5000);
+        });
+    </script>
+    {% endif %}
+</body>
+</html>
