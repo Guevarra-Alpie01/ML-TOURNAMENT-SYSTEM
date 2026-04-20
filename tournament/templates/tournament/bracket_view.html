@@ -10,165 +10,315 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
+        :root {
+            --bg-start: #0f172a;
+            --bg-end: #1e293b;
+            --panel: rgba(255, 255, 255, 0.94);
+            --panel-soft: rgba(248, 250, 252, 0.92);
+            --text: #0f172a;
+            --muted: #475569;
+            --accent: #f97316;
+            --accent-soft: #ffedd5;
+            --ready: #0369a1;
+            --waiting: #92400e;
+            --progress: #7c3aed;
+            --completed: #166534;
+            --bye: #0f766e;
+            --shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top, rgba(249, 115, 22, 0.2), transparent 30%),
+                linear-gradient(135deg, var(--bg-start), var(--bg-end));
             min-height: 100vh;
+            color: white;
         }
-        
+
         .container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 3rem;
         }
-        
-        .bracket-header {
-            background: white;
-            border-radius: 15px;
+
+        .header {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
             padding: 2rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
         }
-        
-        .bracket-header h1 {
-            color: #333;
+
+        .header h1 {
+            font-size: clamp(2rem, 4vw, 3.25rem);
             margin-bottom: 0.5rem;
         }
-        
+
+        .header p {
+            color: rgba(255, 255, 255, 0.82);
+        }
+
         .back-link {
             display: inline-block;
             margin-top: 1rem;
-            padding: 0.5rem 1rem;
-            background: #6c757d;
+            padding: 0.7rem 1.1rem;
+            border-radius: 999px;
+            background: var(--accent);
             color: white;
             text-decoration: none;
-            border-radius: 5px;
+            font-weight: 700;
         }
-        
-        .bracket {
+
+        .section {
+            margin-bottom: 1.75rem;
+            background: var(--panel);
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            color: var(--text);
+        }
+
+        .section-header {
             display: flex;
-            overflow-x: auto;
-            gap: 2rem;
-            padding: 1rem;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .round {
-            flex: 1;
-            min-width: 250px;
-        }
-        
-        .round h3 {
-            text-align: center;
-            color: #667eea;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
             margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
         }
-        
+
+        .section-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .section-header span {
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .rounds {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.25rem;
+        }
+
+        .round {
+            min-width: 280px;
+            background: var(--panel-soft);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 18px;
+            padding: 1rem;
+        }
+
+        .round h3 {
+            margin-bottom: 0.9rem;
+            color: #1e293b;
+            font-size: 1rem;
+        }
+
         .matches {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.9rem;
         }
-        
+
         .match {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 0.75rem;
-            border-left: 4px solid #667eea;
-        }
-        
-        .match-team {
-            padding: 0.25rem;
-            font-weight: 500;
-        }
-        
-        .match-team.winner {
-            color: #28a745;
-            font-weight: bold;
-        }
-        
-        .match-score {
-            font-size: 0.8rem;
-            color: #666;
-            margin-left: 0.5rem;
-        }
-        
-        .match-status {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.4rem;
-            border-radius: 10px;
-            display: inline-block;
-            margin-top: 0.25rem;
-        }
-        
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status-completed {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .no-bracket {
-            text-align: center;
-            padding: 3rem;
             background: white;
-            border-radius: 15px;
-            color: #666;
+            border-radius: 16px;
+            padding: 0.9rem;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .match-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.8rem;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .teams {
+            display: grid;
+            gap: 0.55rem;
+        }
+
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.55rem 0.7rem;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .team-row.winner {
+            background: #dcfce7;
+            color: #166534;
+            font-weight: 700;
+        }
+
+        .team-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .team-score {
+            min-width: 1.5rem;
+            text-align: right;
+            font-weight: 700;
+        }
+
+        .meta {
+            margin-top: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 0.3rem 0.7rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .status-waiting {
+            background: #fef3c7;
+            color: var(--waiting);
+        }
+
+        .status-ready {
+            background: #dbeafe;
+            color: var(--ready);
+        }
+
+        .status-in_progress {
+            background: #ede9fe;
+            color: var(--progress);
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: var(--completed);
+        }
+
+        .status-bye {
+            background: #ccfbf1;
+            color: var(--bye);
+        }
+
+        .bye-note,
+        .winner-note,
+        .source-note {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .empty-state {
+            background: var(--panel);
+            color: var(--text);
+            border-radius: 24px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.25rem 1rem 2rem;
+            }
+
+            .header,
+            .section {
+                padding: 1.2rem;
+                border-radius: 18px;
+            }
+
+            .round {
+                min-width: 240px;
+            }
         }
     </style>
 </head>
 <body>
     {% include 'includes/navbar.html' %}
-    
+
     <div class="container">
-        <div class="bracket-header">
-            <h1>🏆 {{ tournament.name }} - Tournament Bracket</h1>
+        <div class="header">
+            <h1>{{ tournament.name }}</h1>
             <p>{{ tournament.get_format_display }} | {{ tournament.get_team_count }} Teams</p>
-            <a href="{% url 'tournament:detail' tournament.id %}" class="back-link">← Back to Tournament</a>
+            <a href="{% url 'tournament:detail' tournament.id %}" class="back-link">Back to Tournament</a>
         </div>
-        
+
         {% if bracket %}
-            <div class="bracket">
-                {% for round_num, round_data in bracket.items %}
-                    <div class="round">
-                        <h3>{{ round_data.stage }}</h3>
-                        <div class="matches">
-                            {% for match in round_data.matches %}
-                                <div class="match">
-                                    <div class="match-team {% if match.winner == match.team_a %}winner{% endif %}">
-                                        {{ match.team_a }}
-                                        {% if match.score %}
-                                            <span class="match-score">{{ match.score.split|first }}</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="match-team {% if match.winner == match.team_b %}winner{% endif %}">
-                                        {{ match.team_b }}
-                                        {% if match.score %}
-                                            <span class="match-score">{{ match.score.split|last }}</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="match-status status-{{ match.status }}">
-                                        {{ match.status|title }} | {{ match.format }}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
+            {% for section in bracket %}
+                <section class="section">
+                    <div class="section-header">
+                        <h2>{{ section.title }}</h2>
+                        <span>{{ section.rounds|length }} round{{ section.rounds|length|pluralize }}</span>
                     </div>
-                {% endfor %}
-            </div>
+                    <div class="rounds">
+                        {% for round in section.rounds %}
+                            <div class="round">
+                                <h3>{{ round.title }}</h3>
+                                <div class="matches">
+                                    {% for match in round.matches %}
+                                        <article class="match">
+                                            <div class="match-head">
+                                                <span>Match {{ match.game_number }}</span>
+                                                <span>{{ match.get_match_format_display }}</span>
+                                            </div>
+                                            <div class="teams">
+                                                <div class="team-row {% if match.winner == match.team_a %}winner{% endif %}">
+                                                    <span class="team-name">{{ match.team_a.name|default:"TBD" }}</span>
+                                                    <span class="team-score">{{ match.team_a_score|default:"-" }}</span>
+                                                </div>
+                                                <div class="team-row {% if match.winner == match.team_b %}winner{% endif %}">
+                                                    <span class="team-name">{{ match.team_b.name|default:"TBD" }}</span>
+                                                    <span class="team-score">{{ match.team_b_score|default:"-" }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="meta">
+                                                <span class="status status-{{ match.status }}">{{ match.get_status_display }}</span>
+                                                <span class="source-note">{{ match.get_stage_display }}</span>
+                                            </div>
+                                            {% if match.status == 'bye' and match.bye_team %}
+                                                <p class="bye-note">Bye advance: {{ match.bye_team.name }}</p>
+                                            {% elif match.status == 'bye' %}
+                                                <p class="bye-note">Empty branch resolved by bracket byes.</p>
+                                            {% endif %}
+                                            {% if match.status == 'completed' and match.winner %}
+                                                <p class="winner-note">Winner: {{ match.winner.name }}</p>
+                                            {% endif %}
+                                        </article>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
         {% else %}
-            <div class="no-bracket">
-                <p>No bracket available. Make sure matches have been generated.</p>
-                <a href="{% url 'tournament:generate_matches' tournament.id %}" class="btn-warning" style="display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem; background: #ffc107; color: #333; text-decoration: none; border-radius: 5px;">Generate Matches</a>
+            <div class="empty-state">
+                <p>No bracket available yet.</p>
+                <a href="{% url 'tournament:generate_matches' tournament.id %}" class="back-link">Generate Matches</a>
             </div>
         {% endif %}
     </div>

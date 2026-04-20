@@ -18,6 +18,7 @@ class MatchStage(models.TextChoices):
     WINNERS_FINAL = 'winners_final', 'Winners Final'
     LOSERS_FINAL = 'losers_final', 'Losers Final'
     GRAND_FINAL = 'grand_final', 'Grand Final'
+    GRAND_FINAL_RESET = 'grand_final_reset', 'Grand Final Reset'
 
 class MatchFormat(models.TextChoices):
     BO1 = 'bo1', 'Best of 1'
@@ -28,6 +29,12 @@ class BracketType(models.TextChoices):
     WINNERS = 'winners', 'Winners Bracket'
     LOSERS = 'losers', 'Losers Bracket'
     GRAND = 'grand', 'Grand Finals'
+    GRAND_RESET = 'grand_reset', 'Grand Finals Reset'
+
+
+class MatchSourcePosition(models.TextChoices):
+    WINNER = 'winner', 'Winner'
+    LOSER = 'loser', 'Loser'
 
 class Tournament(models.Model):
     name = models.CharField(max_length=200)
@@ -54,7 +61,9 @@ class Tournament(models.Model):
         return self.matches.count()
     
     def get_completed_matches(self):
-        return self.matches.filter(status='completed').count()
+        return self.matches.filter(
+            status__in=[Match.MatchStatus.COMPLETED, Match.MatchStatus.BYE]
+        ).count()
     
     def get_suggested_format(self):
         """Suggest tournament format based on number of teams"""
@@ -69,11 +78,33 @@ class Tournament(models.Model):
     def is_complete(self):
         """Check if tournament is complete"""
         if self.format == TournamentFormat.SINGLE_ELIMINATION:
-            finals = self.matches.filter(stage='final', status='completed').first()
+            finals = self.matches.filter(
+                stage='final',
+                status__in=[Match.MatchStatus.COMPLETED, Match.MatchStatus.BYE],
+            ).first()
             return finals is not None and finals.winner is not None
         elif self.format == TournamentFormat.DOUBLE_ELIMINATION:
-            grand_finals = self.matches.filter(stage='grand_final', status='completed').first()
-            return grand_finals is not None and grand_finals.winner is not None
+            grand_final = self.matches.filter(
+                bracket_type=BracketType.GRAND
+            ).first()
+            grand_reset = self.matches.filter(
+                bracket_type=BracketType.GRAND_RESET
+            ).first()
+
+            if not grand_final or grand_final.status not in [
+                Match.MatchStatus.COMPLETED,
+                Match.MatchStatus.BYE,
+            ]:
+                return False
+
+            if grand_final.winner == grand_final.team_a:
+                return grand_final.winner is not None
+
+            return (
+                grand_reset is not None
+                and grand_reset.status in [Match.MatchStatus.COMPLETED, Match.MatchStatus.BYE]
+                and grand_reset.winner is not None
+            )
         elif self.format == TournamentFormat.ROUND_ROBIN:
             total_matches = self.get_total_matches()
             completed_matches = self.get_completed_matches()
@@ -83,13 +114,29 @@ class Tournament(models.Model):
     def get_champion(self):
         """Get tournament champion"""
         if self.format == TournamentFormat.SINGLE_ELIMINATION:
-            finals = self.matches.filter(stage='final', status='completed').first()
+            finals = self.matches.filter(
+                stage='final',
+                status__in=[Match.MatchStatus.COMPLETED, Match.MatchStatus.BYE],
+            ).first()
             if finals and finals.winner:
                 return finals.winner
         elif self.format == TournamentFormat.DOUBLE_ELIMINATION:
-            grand_finals = self.matches.filter(stage='grand_final', status='completed').first()
-            if grand_finals and grand_finals.winner:
-                return grand_finals.winner
+            grand_final = self.matches.filter(bracket_type=BracketType.GRAND).first()
+            grand_reset = self.matches.filter(bracket_type=BracketType.GRAND_RESET).first()
+
+            if (
+                grand_final
+                and grand_final.status in [Match.MatchStatus.COMPLETED, Match.MatchStatus.BYE]
+                and grand_final.winner == grand_final.team_a
+            ):
+                return grand_final.winner
+
+            if (
+                grand_reset
+                and grand_reset.status in [Match.MatchStatus.COMPLETED, Match.MatchStatus.BYE]
+                and grand_reset.winner
+            ):
+                return grand_reset.winner
         elif self.format == TournamentFormat.ROUND_ROBIN:
             # Calculate standings to find champion
             from django.db import models
@@ -112,32 +159,44 @@ class Tournament(models.Model):
 
 class Match(models.Model):
     class MatchStatus(models.TextChoices):
-        PENDING = 'pending', 'Pending'
+        WAITING = 'waiting', 'Waiting'
+        READY = 'ready', 'Ready'
         IN_PROGRESS = 'in_progress', 'In Progress'
         COMPLETED = 'completed', 'Completed'
+        BYE = 'bye', 'Bye'
     
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches')
     round_number = models.IntegerField()
     game_number = models.IntegerField(default=1)
     stage = models.CharField(max_length=20, choices=MatchStage.choices, default=MatchStage.QUALIFIER)
     match_format = models.CharField(max_length=5, choices=MatchFormat.choices, default=MatchFormat.BO3)
-    bracket_type = models.CharField(max_length=10, choices=BracketType.choices, default=BracketType.WINNERS, null=True, blank=True)
+    bracket_type = models.CharField(max_length=20, choices=BracketType.choices, default=BracketType.WINNERS, null=True, blank=True)
     
     team_a = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='matches_as_team_a')
     team_b = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='matches_as_team_b')
-    team_a_score = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(3)])
-    team_b_score = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(3)])
+    team_a_score = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(0), MaxValueValidator(3)])
+    team_b_score = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(0), MaxValueValidator(3)])
     
     winner = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='matches_won')
-    status = models.CharField(max_length=20, choices=MatchStatus.choices, default=MatchStatus.PENDING)
+    status = models.CharField(max_length=20, choices=MatchStatus.choices, default=MatchStatus.WAITING)
     
     # For bracket tournament linking
     next_match = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='previous_matches')
     parent_match_a = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='child_match_a')
     parent_match_b = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='child_match_b')
+    team_a_source_type = models.CharField(max_length=10, choices=MatchSourcePosition.choices, null=True, blank=True)
+    team_b_source_type = models.CharField(max_length=10, choices=MatchSourcePosition.choices, null=True, blank=True)
     
     # For double elimination - where loser goes
     loser_next_match = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='loser_feeds_into')
+    is_bye = models.BooleanField(default=False)
+    bye_team = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='bye_matches',
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -164,8 +223,28 @@ class Match(models.Model):
     
     def is_ready_to_play(self):
         """Check if match is ready to be played"""
-        return self.team_a is not None and self.team_b is not None and self.status != 'completed'
+        return (
+            self.team_a is not None
+            and self.team_b is not None
+            and self.status in [self.MatchStatus.READY, self.MatchStatus.IN_PROGRESS]
+        )
     
     def get_winner_name(self):
         """Get winner name or 'TBD'"""
         return self.winner.name if self.winner else 'TBD'
+
+    @property
+    def team1_source(self):
+        return self._get_source_payload(self.parent_match_a, self.team_a_source_type)
+
+    @property
+    def team2_source(self):
+        return self._get_source_payload(self.parent_match_b, self.team_b_source_type)
+
+    def _get_source_payload(self, source_match, source_type):
+        if not source_match or not source_type:
+            return None
+        return {'match_id': str(source_match.id), 'position': source_type}
+
+    def scores_recorded(self):
+        return self.team_a_score is not None and self.team_b_score is not None

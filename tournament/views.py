@@ -8,8 +8,16 @@ from django.db import models
 import json
 
 from .models import Tournament, Match, TournamentFormat, MatchStage, MatchFormat, BracketType
-from .tournament_generator import generate_tournament_matches, get_bracket_structure, advance_match
+from .tournament_generator import (
+    advance_match,
+    generate_tournament_matches,
+    get_bracket_structure,
+    sync_tournament_matches,
+)
 from teams.models import Team
+
+
+FINAL_MATCH_STATUSES = {Match.MatchStatus.COMPLETED, Match.MatchStatus.BYE}
 
 # Custom template filter for dictionary access
 @register.filter
@@ -87,7 +95,7 @@ def tournament_detail(request, tournament_id):
         matches_by_round[match.round_number].append(match)
         
         # Count completed matches
-        if match.status == 'completed':
+        if match.status in FINAL_MATCH_STATUSES:
             match_completion_counts[match.round_number] = match_completion_counts.get(match.round_number, 0) + 1
     
     context = {
@@ -98,6 +106,7 @@ def tournament_detail(request, tournament_id):
         'team_count': tournament.get_team_count(),
         'suggested_format': tournament.get_suggested_format(),
         'BracketType': BracketType,
+        'bracket_sections': bracket_structure,
     }
     return render(request, 'tournament/tournament_detail.html', context)
 
@@ -131,9 +140,14 @@ def update_match(request, match_id):
     """Update match results and automatically advance to next round"""
     match = get_object_or_404(Match, id=match_id)
     
-    # Check if match has both teams
     if not match.team_a or not match.team_b:
         messages.error(request, 'Cannot update match: Both teams are not assigned yet. Waiting for previous matches to complete.')
+        return redirect('tournament:detail', tournament_id=match.tournament.id)
+    if match.status == Match.MatchStatus.BYE:
+        messages.error(request, 'Bye matches are advanced automatically and cannot be edited.')
+        return redirect('tournament:detail', tournament_id=match.tournament.id)
+    if match.status == Match.MatchStatus.COMPLETED:
+        messages.error(request, 'This match is already complete.')
         return redirect('tournament:detail', tournament_id=match.tournament.id)
     
     if request.method == 'POST':
@@ -165,17 +179,10 @@ def update_match(request, match_id):
             match.team_a_score = team_a_score
             match.team_b_score = team_b_score
             match.winner = winner
-            match.status = Match.MatchStatus.COMPLETED
-            match.save()
+            match.save(update_fields=['team_a_score', 'team_b_score', 'winner'])
+            sync_tournament_matches(match.tournament)
             
             messages.success(request, f'Match result updated successfully! Winner: {winner.name}')
-            
-            # Handle bracket advancement based on tournament format
-            if match.tournament.format == TournamentFormat.SINGLE_ELIMINATION:
-                handle_single_elimination_advancement(match, winner, request)
-            elif match.tournament.format == TournamentFormat.DOUBLE_ELIMINATION:
-                handle_double_elimination_advancement(match, winner, request)
-            
             return redirect('tournament:detail', tournament_id=match.tournament.id)
             
         except Exception as e:
@@ -186,47 +193,15 @@ def update_match(request, match_id):
 
 def handle_single_elimination_advancement(match, winner, request):
     """Handle advancement for single elimination bracket"""
-    if match.next_match:
-        next_match = match.next_match
-        
-        # Assign winner to appropriate slot
-        if not next_match.team_a:
-            next_match.team_a = winner
-            next_match.save()
-            messages.info(request, f'{winner.name} advanced to the next round!')
-        elif not next_match.team_b:
-            next_match.team_b = winner
-            next_match.save()
-            messages.info(request, f'{winner.name} advanced to the next round!')
-        
-        # Check if both teams are now available
-        if next_match.team_a and next_match.team_b:
-            messages.success(request, f'Next match is ready: {next_match.team_a.name} vs {next_match.team_b.name}')
+    sync_tournament_matches(match.tournament)
+    if match.next_match and match.next_match.status in [Match.MatchStatus.READY, Match.MatchStatus.IN_PROGRESS]:
+        messages.info(request, f'{winner.name} advanced to the next round!')
 
 def handle_double_elimination_advancement(match, winner, request):
     """Handle advancement for double elimination bracket"""
-    # Advance winner in winners bracket
-    if match.bracket_type == BracketType.WINNERS:
-        if match.next_match:
-            next_match = match.next_match
-            if not next_match.team_a:
-                next_match.team_a = winner
-            elif not next_match.team_b:
-                next_match.team_b = winner
-            next_match.save()
-            messages.info(request, f'{winner.name} advanced in winners bracket!')
-    
-    # Send loser to losers bracket
-    loser = match.team_a if winner == match.team_b else match.team_b
-    if loser and match.loser_next_match:
-        loser_match = match.loser_next_match
-        if not loser_match.team_a:
-            loser_match.team_a = loser
-            messages.info(request, f'{loser.name} moved to losers bracket.')
-        elif not loser_match.team_b:
-            loser_match.team_b = loser
-            messages.info(request, f'{loser.name} moved to losers bracket.')
-        loser_match.save()
+    sync_tournament_matches(match.tournament)
+    if match.next_match and match.next_match.status in [Match.MatchStatus.READY, Match.MatchStatus.IN_PROGRESS]:
+        messages.info(request, f'{winner.name} advanced in the bracket!')
 
 def advance_to_next_round(request, tournament_id):
     """Advance tournament to the next round after all current round matches are complete"""
@@ -246,7 +221,7 @@ def advance_single_elimination_round(tournament, request):
     
     # Check if all matches in current round are completed
     current_round_matches = tournament.matches.filter(round_number=current_round, bracket_type=BracketType.WINNERS)
-    incomplete_matches = current_round_matches.exclude(status='completed')
+    incomplete_matches = current_round_matches.exclude(status__in=FINAL_MATCH_STATUSES)
     
     if incomplete_matches.exists():
         messages.error(request, f'Cannot advance: {incomplete_matches.count()} matches in Round {current_round} are still pending.')
@@ -277,11 +252,11 @@ def advance_double_elimination_round(tournament, request):
     
     # Check winners bracket progress
     wb_matches = tournament.matches.filter(round_number=current_wb_round, bracket_type=BracketType.WINNERS)
-    wb_incomplete = wb_matches.exclude(status='completed')
+    wb_incomplete = wb_matches.exclude(status__in=FINAL_MATCH_STATUSES)
     
     # Check losers bracket progress
     lb_matches = tournament.matches.filter(round_number=current_lb_round, bracket_type=BracketType.LOSERS)
-    lb_incomplete = lb_matches.exclude(status='completed')
+    lb_incomplete = lb_matches.exclude(status__in=FINAL_MATCH_STATUSES)
     
     if wb_incomplete.exists() or lb_incomplete.exists():
         messages.error(request, 'Cannot advance: Some matches in current round are still pending.')
@@ -319,7 +294,7 @@ def get_single_elimination_status(tournament):
     current_round = tournament.current_round
     current_round_matches = tournament.matches.filter(round_number=current_round, bracket_type=BracketType.WINNERS)
     total_matches = current_round_matches.count()
-    completed_matches = current_round_matches.filter(status='completed').count()
+    completed_matches = current_round_matches.filter(status__in=FINAL_MATCH_STATUSES).count()
     
     next_round_exists = tournament.matches.filter(round_number=current_round + 1).exists()
     all_complete = completed_matches == total_matches and total_matches > 0
@@ -346,9 +321,9 @@ def get_double_elimination_status(tournament):
     lb_matches = tournament.matches.filter(round_number=current_lb_round, bracket_type=BracketType.LOSERS)
     
     wb_total = wb_matches.count()
-    wb_completed = wb_matches.filter(status='completed').count()
+    wb_completed = wb_matches.filter(status__in=FINAL_MATCH_STATUSES).count()
     lb_total = lb_matches.count()
-    lb_completed = lb_matches.filter(status='completed').count()
+    lb_completed = lb_matches.filter(status__in=FINAL_MATCH_STATUSES).count()
     
     is_complete = tournament.is_complete()
     champion = tournament.get_champion().name if tournament.get_champion() else None
@@ -378,10 +353,12 @@ def update_match_result(request, match_id):
         
         match = Match.objects.get(id=match_id)
         
-        if match.status == 'completed':
+        if match.status in FINAL_MATCH_STATUSES:
             return JsonResponse({'error': 'Match already completed'}, status=400)
         
         result = advance_match(match_id, winner_team_id, team_a_score, team_b_score)
+        if result.get('error'):
+            return JsonResponse({'error': result['error']}, status=400)
         
         return JsonResponse({
             'success': True,

@@ -292,9 +292,14 @@
             font-size: 0.75rem;
         }
         
-        .status.pending {
+        .status.waiting {
             background: #fff3cd;
             color: #856404;
+        }
+
+        .status.ready {
+            background: #dbeafe;
+            color: #1d4ed8;
         }
         
         .status.completed {
@@ -305,6 +310,11 @@
         .status.in_progress {
             background: #cce5ff;
             color: #004085;
+        }
+
+        .status.bye {
+            background: #ccfbf1;
+            color: #0f766e;
         }
         
         .btn-update {
@@ -550,17 +560,23 @@
                                                 {% if match.winner %}
                                                     <span class="score">Winner: {{ match.winner.name }}</span>
                                                 {% endif %}
+                                            {% elif match.status == 'bye' %}
+                                                {% if match.bye_team %}
+                                                    <span class="score">Bye Advance: {{ match.bye_team.name }}</span>
+                                                {% else %}
+                                                    <span class="score">Resolved by bracket bye</span>
+                                                {% endif %}
                                             {% endif %}
                                             <span class="status {{ match.status }}">{{ match.get_status_display }}</span>
                                         </div>
                                         
-                                        {% if match.status != 'completed' and match.team_a and match.team_b %}
+                                        {% if match.status == 'ready' or match.status == 'in_progress' %}
                                             <div>
                                                 <a href="{% url 'tournament:update_match' match.id %}" class="btn-update">
                                                     ✏️ Update Result
                                                 </a>
                                             </div>
-                                        {% elif match.status == 'completed' %}
+                                        {% elif match.status == 'completed' or match.status == 'bye' %}
                                             <div>
                                                 <span class="completed-badge">✓ Game Complete</span>
                                             </div>
@@ -606,13 +622,13 @@
                                         <span class="status {{ match.status }}">{{ match.get_status_display }}</span>
                                     </div>
                                     
-                                    {% if match.status != 'completed' and match.team_a and match.team_b %}
+                                    {% if match.status == 'ready' or match.status == 'in_progress' %}
                                         <div>
                                             <a href="{% url 'tournament:update_match' match.id %}" class="btn-update">
                                                 ✏️ Update Result
                                             </a>
                                         </div>
-                                    {% elif match.status == 'completed' %}
+                                    {% elif match.status == 'completed' or match.status == 'bye' %}
                                         <div>
                                             <span class="completed-badge">✓ Match Complete</span>
                                         </div>
