@@ -189,135 +189,18 @@ def generate_single_elimination_matches(tournament, teams):
 def generate_double_elimination_matches(tournament, teams):
     bracket_size, _, total_wb_rounds = calculate_bracket_size(len(teams))
     slots = get_seeded_slots(teams, bracket_size)
+    winners_rounds = build_double_elimination_winners_rounds(
+        tournament,
+        slots,
+        total_wb_rounds,
+    )
+    losers_rounds = build_dynamic_losers_rounds(
+        tournament,
+        winners_rounds,
+        total_wb_rounds,
+    )
 
-    winners_rounds = []
-    first_round = []
-    for index in range(bracket_size // 2):
-        match = create_match(
-            tournament=tournament,
-            round_number=1,
-            game_number=index + 1,
-            bracket_type=BracketType.WINNERS,
-            stage=get_double_elim_stage(total_wb_rounds, 1, True),
-            match_format=get_match_format_for_round(1, total_wb_rounds),
-            team_a=slots[index * 2],
-            team_b=slots[index * 2 + 1],
-        )
-        first_round.append(match)
-    winners_rounds.append(first_round)
-
-    for round_number in range(2, total_wb_rounds + 1):
-        previous_round = winners_rounds[-1]
-        round_matches = []
-        for index in range(len(previous_round) // 2):
-            match = create_match(
-                tournament=tournament,
-                round_number=round_number,
-                game_number=index + 1,
-                bracket_type=BracketType.WINNERS,
-                stage=get_double_elim_stage(total_wb_rounds, round_number, True),
-                match_format=get_match_format_for_round(round_number, total_wb_rounds),
-            )
-            source_a = previous_round[index * 2]
-            source_b = previous_round[index * 2 + 1]
-            connect_slot(match, 'team_a', source_a, MatchSourcePosition.WINNER)
-            connect_slot(match, 'team_b', source_b, MatchSourcePosition.WINNER)
-            match.save(update_fields=['parent_match_a', 'team_a_source_type', 'parent_match_b', 'team_b_source_type'])
-            assign_next_match(source_a, match, MatchSourcePosition.WINNER)
-            assign_next_match(source_b, match, MatchSourcePosition.WINNER)
-            round_matches.append(match)
-        winners_rounds.append(round_matches)
-
-    losers_rounds = []
-    if total_wb_rounds == 1:
-        losers_final = create_match(
-            tournament=tournament,
-            round_number=1,
-            game_number=1,
-            bracket_type=BracketType.LOSERS,
-            stage=MatchStage.LOSERS_FINAL,
-            match_format=MatchFormat.BO3,
-        )
-        connect_slot(losers_final, 'team_a', winners_rounds[0][0], MatchSourcePosition.LOSER)
-        losers_final.save(update_fields=['parent_match_a', 'team_a_source_type'])
-        assign_next_match(winners_rounds[0][0], losers_final, MatchSourcePosition.LOSER)
-        losers_rounds.append([losers_final])
-    else:
-        lb_round_1 = []
-        for index in range(len(winners_rounds[0]) // 2):
-            match = create_match(
-                tournament=tournament,
-                round_number=1,
-                game_number=index + 1,
-                bracket_type=BracketType.LOSERS,
-                stage=get_double_elim_stage(total_wb_rounds, 1, False),
-                match_format=MatchFormat.BO1,
-            )
-            source_a = winners_rounds[0][index * 2]
-            source_b = winners_rounds[0][index * 2 + 1]
-            connect_slot(match, 'team_a', source_a, MatchSourcePosition.LOSER)
-            connect_slot(match, 'team_b', source_b, MatchSourcePosition.LOSER)
-            match.save(update_fields=['parent_match_a', 'team_a_source_type', 'parent_match_b', 'team_b_source_type'])
-            assign_next_match(source_a, match, MatchSourcePosition.LOSER)
-            assign_next_match(source_b, match, MatchSourcePosition.LOSER)
-            lb_round_1.append(match)
-        losers_rounds.append(lb_round_1)
-
-        for wb_round_index in range(1, total_wb_rounds):
-            wb_matches = winners_rounds[wb_round_index]
-            previous_lb_round = losers_rounds[-1]
-            current_lb_round_number = len(losers_rounds) + 1
-            even_round_matches = []
-            previous_index_map = get_adjacent_swap_indexes(len(previous_lb_round))
-
-            for index, wb_match in enumerate(wb_matches):
-                match = create_match(
-                    tournament=tournament,
-                    round_number=current_lb_round_number,
-                    game_number=index + 1,
-                    bracket_type=BracketType.LOSERS,
-                    stage=get_double_elim_stage(total_wb_rounds, current_lb_round_number, False),
-                    match_format=get_match_format_for_losers_round(current_lb_round_number, total_wb_rounds),
-                )
-                connect_slot(
-                    match,
-                    'team_a',
-                    previous_lb_round[previous_index_map[index]],
-                    MatchSourcePosition.WINNER,
-                )
-                connect_slot(match, 'team_b', wb_match, MatchSourcePosition.LOSER)
-                match.save(update_fields=['parent_match_a', 'team_a_source_type', 'parent_match_b', 'team_b_source_type'])
-                assign_next_match(previous_lb_round[previous_index_map[index]], match, MatchSourcePosition.WINNER)
-                assign_next_match(wb_match, match, MatchSourcePosition.LOSER)
-                even_round_matches.append(match)
-            losers_rounds.append(even_round_matches)
-
-            if wb_round_index == total_wb_rounds - 1:
-                continue
-
-            previous_even_round = losers_rounds[-1]
-            odd_round_matches = []
-            odd_round_number = len(losers_rounds) + 1
-            for index in range(len(previous_even_round) // 2):
-                match = create_match(
-                    tournament=tournament,
-                    round_number=odd_round_number,
-                    game_number=index + 1,
-                    bracket_type=BracketType.LOSERS,
-                    stage=get_double_elim_stage(total_wb_rounds, odd_round_number, False),
-                    match_format=get_match_format_for_losers_round(odd_round_number, total_wb_rounds),
-                )
-                source_a = previous_even_round[index * 2]
-                source_b = previous_even_round[index * 2 + 1]
-                connect_slot(match, 'team_a', source_a, MatchSourcePosition.WINNER)
-                connect_slot(match, 'team_b', source_b, MatchSourcePosition.WINNER)
-                match.save(update_fields=['parent_match_a', 'team_a_source_type', 'parent_match_b', 'team_b_source_type'])
-                assign_next_match(source_a, match, MatchSourcePosition.WINNER)
-                assign_next_match(source_b, match, MatchSourcePosition.WINNER)
-                odd_round_matches.append(match)
-            losers_rounds.append(odd_round_matches)
-
-    winners_final = winners_rounds[-1][0]
+    winners_final = winners_rounds[total_wb_rounds][0]
     losers_final = losers_rounds[-1][0]
 
     grand_final = create_match(
@@ -347,13 +230,210 @@ def generate_double_elimination_matches(tournament, teams):
     grand_reset.save(update_fields=['parent_match_a', 'team_a_source_type', 'parent_match_b', 'team_b_source_type'])
 
 
-def get_adjacent_swap_indexes(length):
-    if length <= 1:
-        return list(range(length))
-    indexes = []
-    for index in range(0, length, 2):
-        indexes.extend([index + 1, index])
-    return indexes
+def build_double_elimination_winners_rounds(tournament, slots, total_wb_rounds):
+    winners_rounds = {round_number: [] for round_number in range(1, total_wb_rounds + 1)}
+    previous_sources = []
+    bye_game_number = 1
+    round_one_game_number = 1
+
+    for index in range(len(slots) // 2):
+        team_a = slots[index * 2]
+        team_b = slots[index * 2 + 1]
+
+        if team_a and team_b:
+            match = create_match(
+                tournament=tournament,
+                round_number=1,
+                game_number=round_one_game_number,
+                bracket_type=BracketType.WINNERS,
+                stage=get_double_elim_stage(total_wb_rounds, 1, True),
+                match_format=get_match_format_for_round(1, total_wb_rounds),
+                team_a=team_a,
+                team_b=team_b,
+            )
+            winners_rounds[1].append(match)
+            previous_sources.append(match)
+            round_one_game_number += 1
+            continue
+
+        if team_a or team_b:
+            match = create_match(
+                tournament=tournament,
+                round_number=0,
+                game_number=bye_game_number,
+                bracket_type=BracketType.WINNERS,
+                stage=MatchStage.QUALIFIER,
+                match_format=MatchFormat.BO1,
+                team_a=team_a,
+                team_b=team_b,
+            )
+            previous_sources.append(match)
+            bye_game_number += 1
+            continue
+
+        previous_sources.append(None)
+
+    for round_number in range(2, total_wb_rounds + 1):
+        current_sources = []
+        game_number = 1
+        for index in range(0, len(previous_sources), 2):
+            source_a = previous_sources[index]
+            source_b = previous_sources[index + 1]
+
+            if not source_a and not source_b:
+                current_sources.append(None)
+                continue
+
+            match = create_match(
+                tournament=tournament,
+                round_number=round_number,
+                game_number=game_number,
+                bracket_type=BracketType.WINNERS,
+                stage=get_double_elim_stage(total_wb_rounds, round_number, True),
+                match_format=get_match_format_for_round(round_number, total_wb_rounds),
+            )
+            attach_match_slot(match, 'team_a', build_match_slot(source_a, MatchSourcePosition.WINNER))
+            attach_match_slot(match, 'team_b', build_match_slot(source_b, MatchSourcePosition.WINNER))
+            match.save()
+
+            register_target_match(build_match_slot(source_a, MatchSourcePosition.WINNER), match)
+            register_target_match(build_match_slot(source_b, MatchSourcePosition.WINNER), match)
+
+            winners_rounds[round_number].append(match)
+            current_sources.append(match)
+            game_number += 1
+
+        previous_sources = current_sources
+
+    return winners_rounds
+
+
+def build_dynamic_losers_rounds(tournament, winners_rounds, total_wb_rounds):
+    losers_rounds = []
+    carry_slots = []
+    lb_round_number = 1
+
+    for wb_round_number in range(1, total_wb_rounds + 1):
+        wb_matches = winners_rounds[wb_round_number]
+        loser_slots = [
+            build_match_slot(match, MatchSourcePosition.LOSER)
+            for match in wb_matches
+        ]
+
+        if wb_round_number == 1:
+            current_slots = loser_slots
+            target_survivors = max(1, math.ceil(len(current_slots) / 2)) if current_slots else 0
+        else:
+            current_slots = interleave_slots(carry_slots, loser_slots)
+            target_survivors = len(winners_rounds.get(wb_round_number + 1, [])) or 1
+
+        phase_created_matches = []
+        while len(current_slots) > target_survivors:
+            round_matches, current_slots = build_losers_round(
+                tournament,
+                current_slots,
+                lb_round_number,
+            )
+            losers_rounds.append(round_matches)
+            phase_created_matches.extend(round_matches)
+            lb_round_number += 1
+
+        if not phase_created_matches and len(current_slots) == 1:
+            round_matches, current_slots = build_losers_round(
+                tournament,
+                current_slots,
+                lb_round_number,
+            )
+            losers_rounds.append(round_matches)
+            lb_round_number += 1
+
+        carry_slots = current_slots
+
+    apply_losers_round_metadata(losers_rounds)
+    return losers_rounds
+
+
+def build_match_slot(source_match, source_type):
+    if not source_match:
+        return None
+    return {
+        'match': source_match,
+        'source_type': source_type,
+    }
+
+
+def interleave_slots(existing_slots, new_slots):
+    ordered = []
+    max_length = max(len(existing_slots), len(new_slots))
+    for index in range(max_length):
+        if index < len(existing_slots):
+            ordered.append(existing_slots[index])
+        if index < len(new_slots):
+            ordered.append(new_slots[index])
+    return ordered
+
+
+def build_losers_round(tournament, slots, round_number):
+    round_matches = []
+    next_round_slots = []
+    game_number = 1
+
+    for index in range(0, len(slots), 2):
+        slot_a = slots[index]
+        slot_b = slots[index + 1] if index + 1 < len(slots) else None
+
+        match = create_match(
+            tournament=tournament,
+            round_number=round_number,
+            game_number=game_number,
+            bracket_type=BracketType.LOSERS,
+            stage=MatchStage.QUALIFIER,
+            match_format=MatchFormat.BO1,
+        )
+        attach_match_slot(match, 'team_a', slot_a)
+        attach_match_slot(match, 'team_b', slot_b)
+        match.save()
+
+        register_target_match(slot_a, match)
+        register_target_match(slot_b, match)
+
+        round_matches.append(match)
+        next_round_slots.append(build_match_slot(match, MatchSourcePosition.WINNER))
+        game_number += 1
+
+    return round_matches, next_round_slots
+
+
+def attach_match_slot(match, slot_name, slot):
+    if not slot:
+        return
+    if slot.get('team'):
+        setattr(match, slot_name, slot['team'])
+        return
+    connect_slot(match, slot_name, slot['match'], slot['source_type'])
+
+
+def register_target_match(slot, target_match):
+    if not slot or not slot.get('match'):
+        return
+    assign_next_match(slot['match'], target_match, slot['source_type'])
+
+
+def apply_losers_round_metadata(losers_rounds):
+    total_rounds = len(losers_rounds)
+    for round_index, round_matches in enumerate(losers_rounds, start=1):
+        stage = MatchStage.LOSERS_FINAL if round_index == total_rounds else MatchStage.QUALIFIER
+        if round_index == total_rounds:
+            match_format = MatchFormat.BO5
+        elif round_index >= max(1, total_rounds - 2):
+            match_format = MatchFormat.BO3
+        else:
+            match_format = MatchFormat.BO1
+
+        for match in round_matches:
+            match.stage = stage
+            match.match_format = match_format
+            match.save(update_fields=['stage', 'match_format'])
 
 
 def generate_round_robin_matches(tournament, teams):
@@ -430,15 +510,21 @@ def get_bracket_structure(tournament):
         BracketType.GRAND: {},
         BracketType.GRAND_RESET: {},
     }
+    winners_seed_byes = []
 
     matches = tournament.matches.select_related(
         'team_a',
         'team_b',
         'winner',
         'bye_team',
+        'next_match',
+        'loser_next_match',
     ).order_by('bracket_type', 'round_number', 'game_number')
 
     for match in matches:
+        if match.bracket_type == BracketType.WINNERS and match.round_number == 0:
+            winners_seed_byes.append(match)
+            continue
         grouped.setdefault(match.bracket_type, {})
         grouped[match.bracket_type].setdefault(match.round_number, [])
         grouped[match.bracket_type][match.round_number].append(match)
@@ -448,19 +534,22 @@ def get_bracket_structure(tournament):
         rounds = grouped.get(bracket_type, {})
         if not rounds:
             continue
+        section = {
+            'bracket_type': bracket_type,
+            'title': dict(BracketType.choices).get(bracket_type, bracket_type),
+            'rounds': [
+                {
+                    'round_number': round_number,
+                    'title': get_round_title(bracket_type, round_number, round_matches),
+                    'matches': round_matches,
+                }
+                for round_number, round_matches in sorted(rounds.items())
+            ],
+        }
+        if bracket_type == BracketType.WINNERS:
+            section['seed_byes'] = winners_seed_byes
         sections.append(
-            {
-                'bracket_type': bracket_type,
-                'title': dict(BracketType.choices).get(bracket_type, bracket_type),
-                'rounds': [
-                    {
-                        'round_number': round_number,
-                        'title': get_round_title(bracket_type, round_number, round_matches),
-                        'matches': round_matches,
-                    }
-                    for round_number, round_matches in sorted(rounds.items())
-                ],
-            }
+            section
         )
 
     return sections
@@ -640,21 +729,56 @@ def has_any_scores(match):
     return match.team_a_score is not None or match.team_b_score is not None
 
 
+def validate_match_result(match, winner_team_id, team_a_score, team_b_score):
+    if match.status in FINAL_MATCH_STATUSES and not match.is_bye:
+        return 'Match already completed', None
+    if match.is_bye:
+        return 'Bye matches advance automatically', None
+    if not match.team_a or not match.team_b:
+        return 'Both teams must be assigned before recording a result', None
+    if winner_team_id is None:
+        return 'A winner must be selected', None
+    if team_a_score is None or team_b_score is None:
+        return 'Both teams must have recorded scores', None
+
+    try:
+        team_a_score = int(team_a_score)
+        team_b_score = int(team_b_score)
+    except (TypeError, ValueError):
+        return 'Scores must be whole numbers', None
+
+    if team_a_score < 0 or team_b_score < 0:
+        return 'Scores cannot be negative', None
+
+    winner = Team.objects.filter(id=winner_team_id).first()
+    if winner is None or winner.id not in [match.team_a_id, match.team_b_id]:
+        return 'Winner must be one of the assigned teams', None
+
+    required_wins = match.get_required_wins()
+    if max(team_a_score, team_b_score) != required_wins:
+        return f'The winner must have exactly {required_wins} wins', None
+    if team_a_score == team_b_score:
+        return 'Tied scores are not valid for elimination matches', None
+    if min(team_a_score, team_b_score) >= required_wins:
+        return 'The losing team score is too high for this match format', None
+
+    expected_winner_id = match.team_a_id if team_a_score > team_b_score else match.team_b_id
+    if winner.id != expected_winner_id:
+        return 'Selected winner does not match the submitted scoreline', None
+
+    return None, winner
+
+
 def advance_match(match_id, winner_team_id, team_a_score, team_b_score):
     """Advance a match result and update the bracket."""
     match = Match.objects.select_related('tournament', 'team_a', 'team_b').get(id=match_id)
 
-    if match.status in FINAL_MATCH_STATUSES and not match.is_bye:
-        return {'error': 'Match already completed'}
-    if not match.team_a or not match.team_b:
-        return {'error': 'Both teams must be assigned before recording a result'}
+    error, winner = validate_match_result(match, winner_team_id, team_a_score, team_b_score)
+    if error:
+        return {'error': error}
 
-    winner = Team.objects.get(id=winner_team_id)
-    if winner.id not in [match.team_a_id, match.team_b_id]:
-        return {'error': 'Winner must be one of the assigned teams'}
-
-    match.team_a_score = team_a_score
-    match.team_b_score = team_b_score
+    match.team_a_score = int(team_a_score)
+    match.team_b_score = int(team_b_score)
     match.winner = winner
     match.save(update_fields=['team_a_score', 'team_b_score', 'winner'])
 

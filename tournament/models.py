@@ -248,3 +248,90 @@ class Match(models.Model):
 
     def scores_recorded(self):
         return self.team_a_score is not None and self.team_b_score is not None
+
+    def has_assigned_teams(self):
+        return self.team_a_id is not None and self.team_b_id is not None
+
+    def has_partial_scores(self):
+        return (self.team_a_score is not None or self.team_b_score is not None) and not self.scores_recorded()
+
+    @property
+    def status_label(self):
+        labels = {
+            self.MatchStatus.WAITING: 'Waiting',
+            self.MatchStatus.READY: 'Ready to Play',
+            self.MatchStatus.IN_PROGRESS: 'In Progress',
+            self.MatchStatus.COMPLETED: 'Complete',
+            self.MatchStatus.BYE: 'Bye',
+        }
+        if self.status == self.MatchStatus.BYE and self.bye_team_id:
+            return 'Bye Complete'
+        return labels.get(self.status, self.get_status_display())
+
+    @property
+    def team_a_display_name(self):
+        if self.team_a_id:
+            return self.team_a.name
+        if self.parent_match_a_id:
+            return 'Waiting for opponent'
+        return 'TBD'
+
+    @property
+    def team_b_display_name(self):
+        if self.team_b_id:
+            return self.team_b.name
+        if self.parent_match_b_id:
+            return 'Waiting for opponent'
+        return 'TBD'
+
+    @property
+    def can_update_result(self):
+        return (
+            self.has_assigned_teams()
+            and self.status in [self.MatchStatus.READY, self.MatchStatus.IN_PROGRESS]
+            and not self.is_bye
+        )
+
+    @property
+    def action_label(self):
+        if self.can_update_result:
+            return 'Update Result'
+        if self.status in [self.MatchStatus.COMPLETED, self.MatchStatus.BYE]:
+            return 'View Results'
+        return 'Disabled'
+
+    @property
+    def bracket_code(self):
+        if self.bracket_type == BracketType.WINNERS:
+            return f"W{self.game_number}"
+        if self.bracket_type == BracketType.LOSERS:
+            return f"L{self.game_number}"
+        if self.bracket_type == BracketType.GRAND:
+            return "GF1"
+        if self.bracket_type == BracketType.GRAND_RESET:
+            return "GF2"
+        return f"M{self.game_number}"
+
+    def _describe_route(self, target_match, route_type):
+        if not target_match:
+            return None
+
+        bracket_labels = {
+            BracketType.WINNERS: 'W',
+            BracketType.LOSERS: 'L',
+            BracketType.GRAND: 'GF',
+            BracketType.GRAND_RESET: 'GF Reset',
+        }
+        route_prefix = 'Winner' if route_type == 'winner' else 'Loser'
+        bracket = bracket_labels.get(target_match.bracket_type, 'M')
+        if target_match.bracket_type in [BracketType.GRAND, BracketType.GRAND_RESET]:
+            return f"{route_prefix} to {bracket}"
+        return f"{route_prefix} to {bracket} Round {target_match.round_number}, Match {target_match.game_number}"
+
+    @property
+    def winner_route_label(self):
+        return self._describe_route(self.next_match, 'winner')
+
+    @property
+    def loser_route_label(self):
+        return self._describe_route(self.loser_next_match, 'loser')

@@ -82,6 +82,7 @@ def create_tournament(request):
 def tournament_detail(request, tournament_id):
     """View tournament details and bracket"""
     tournament = get_object_or_404(Tournament, id=tournament_id)
+    sync_tournament_matches(tournament)
     bracket_structure = get_bracket_structure(tournament)
     
     # Get matches by round for display
@@ -149,40 +150,24 @@ def update_match(request, match_id):
     if match.status == Match.MatchStatus.COMPLETED:
         messages.error(request, 'This match is already complete.')
         return redirect('tournament:detail', tournament_id=match.tournament.id)
+    if match.status == Match.MatchStatus.WAITING:
+        messages.error(request, 'This match is still waiting for teams to be assigned.')
+        return redirect('tournament:detail', tournament_id=match.tournament.id)
     
     if request.method == 'POST':
         try:
-            # Get winner from form
             winner_id = request.POST.get('winner')
-            team_a_score = int(request.POST.get('team_a_score', 0))
-            team_b_score = int(request.POST.get('team_b_score', 0))
-            
-            if not winner_id:
-                messages.error(request, 'Please select a winner')
+            result = advance_match(
+                match.id,
+                winner_id,
+                request.POST.get('team_a_score'),
+                request.POST.get('team_b_score'),
+            )
+            if result.get('error'):
+                messages.error(request, result['error'])
                 return redirect('tournament:update_match', match_id=match_id)
-            
-            winner = match.team_a if str(match.team_a.id) == winner_id else match.team_b
-            
-            # Validate scores based on match format
-            required_wins = match.get_required_wins()
-            
-            if winner == match.team_a:
-                if team_a_score != required_wins or team_b_score > required_wins - 1:
-                    messages.error(request, f'Invalid score. Winner must have {required_wins} wins.')
-                    return redirect('tournament:update_match', match_id=match_id)
-            else:
-                if team_b_score != required_wins or team_a_score > required_wins - 1:
-                    messages.error(request, f'Invalid score. Winner must have {required_wins} wins.')
-                    return redirect('tournament:update_match', match_id=match_id)
-            
-            # Update match
-            match.team_a_score = team_a_score
-            match.team_b_score = team_b_score
-            match.winner = winner
-            match.save(update_fields=['team_a_score', 'team_b_score', 'winner'])
-            sync_tournament_matches(match.tournament)
-            
-            messages.success(request, f'Match result updated successfully! Winner: {winner.name}')
+
+            messages.success(request, f'Match result updated successfully! Winner: {result["winner"]}')
             return redirect('tournament:detail', tournament_id=match.tournament.id)
             
         except Exception as e:
@@ -372,11 +357,13 @@ def update_match_result(request, match_id):
 def tournament_bracket_view(request, tournament_id):
     """View bracket in a visual format"""
     tournament = get_object_or_404(Tournament, id=tournament_id)
+    sync_tournament_matches(tournament)
     bracket = get_bracket_structure(tournament)
     
     return render(request, 'tournament/bracket_view.html', {
         'tournament': tournament,
-        'bracket': bracket
+        'bracket': bracket,
+        'champion': tournament.get_champion(),
     })
 
 def round_robin_standings(request, tournament_id):
