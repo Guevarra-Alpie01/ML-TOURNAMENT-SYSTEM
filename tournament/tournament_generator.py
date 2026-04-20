@@ -231,54 +231,41 @@ def generate_double_elimination_matches(tournament, teams):
 
 
 def build_double_elimination_winners_rounds(tournament, slots, total_wb_rounds):
+    """
+    Build winners bracket rounds for double elimination.
+    
+    Properly handles bye teams by creating them as regular Round 1 matches
+    so the bracket structure is clean and all teams appear active from Round 1.
+    """
     winners_rounds = {round_number: [] for round_number in range(1, total_wb_rounds + 1)}
     previous_sources = []
-    bye_game_number = 1
     round_one_game_number = 1
 
     for index in range(len(slots) // 2):
         team_a = slots[index * 2]
         team_b = slots[index * 2 + 1]
 
-        if team_a and team_b:
-            match = create_match(
-                tournament=tournament,
-                round_number=1,
-                game_number=round_one_game_number,
-                bracket_type=BracketType.WINNERS,
-                stage=get_double_elim_stage(total_wb_rounds, 1, True),
-                match_format=get_match_format_for_round(1, total_wb_rounds),
-                team_a=team_a,
-                team_b=team_b,
-            )
-            winners_rounds[1].append(match)
-            previous_sources.append(match)
-            round_one_game_number += 1
-            continue
-
-        if team_a or team_b:
-            match = create_match(
-                tournament=tournament,
-                round_number=0,
-                game_number=bye_game_number,
-                bracket_type=BracketType.WINNERS,
-                stage=MatchStage.QUALIFIER,
-                match_format=MatchFormat.BO1,
-                team_a=team_a,
-                team_b=team_b,
-            )
-            previous_sources.append(match)
-            bye_game_number += 1
-            continue
-
-        previous_sources.append(None)
+        # Create Round 1 match - will be bye if one or both teams missing
+        match = create_match(
+            tournament=tournament,
+            round_number=1,
+            game_number=round_one_game_number,
+            bracket_type=BracketType.WINNERS,
+            stage=get_double_elim_stage(total_wb_rounds, 1, True),
+            match_format=MatchFormat.BO1,  # Use BO1 for bye matches
+            team_a=team_a,
+            team_b=team_b,
+        )
+        winners_rounds[1].append(match)
+        previous_sources.append(match)
+        round_one_game_number += 1
 
     for round_number in range(2, total_wb_rounds + 1):
         current_sources = []
         game_number = 1
         for index in range(0, len(previous_sources), 2):
             source_a = previous_sources[index]
-            source_b = previous_sources[index + 1]
+            source_b = previous_sources[index + 1] if index + 1 < len(previous_sources) else None
 
             if not source_a and not source_b:
                 current_sources.append(None)
