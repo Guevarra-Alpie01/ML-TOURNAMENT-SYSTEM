@@ -4,6 +4,10 @@ from django.contrib import messages
 from .models import Player
 from .forms import PlayerForm
 
+
+def home(request):
+    return render(request, 'home.html')
+
 def add_player(request):
     """Add a new player"""
     if request.method == 'POST':

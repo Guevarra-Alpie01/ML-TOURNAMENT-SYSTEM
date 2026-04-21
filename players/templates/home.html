@@ -1,0 +1,389 @@
+{% include 'includes/navbar.html' %}
+{% load static %}
+
+{% block title %}Home | ML Tournament System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========= HERO SECTION STYLES (Homepage specific) ========= */
+    .hero-section {
+        min-height: calc(100vh - 85px);
+        background-image: url('{% static "image/hero-mobile-legends.jpeg" %}');
+        background-size: cover;
+        background-position: center 30%;
+        background-repeat: no-repeat;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    /* Overlay for better text readability */
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.7) 100%);
+        backdrop-filter: brightness(0.85);
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 900px;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        border-radius: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+        animation: fadeInUp 0.9s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+
+    .hero-content h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: white;
+        text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.5);
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #fff, #e0d7ff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        text-shadow: none;
+    }
+
+    .hero-content p {
+        font-size: 1.25rem;
+        color: rgba(255, 255, 255, 0.92);
+        margin-bottom: 2rem;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 1.2rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.9rem 1.8rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(5px);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .hero-btn-primary {
+        background: #667eea;
+        border: none;
+        color: white;
+        box-shadow: 0 8px 18px rgba(102, 126, 234, 0.3);
+    }
+
+    .hero-btn-primary:hover {
+        background: #5a67d8;
+        transform: translateY(-3px);
+        box-shadow: 0 14px 26px rgba(102, 126, 234, 0.4);
+    }
+
+    .hero-btn-outline:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Feature cards section */
+    .features-section {
+        background: #f8fafc;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .section-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 2.5rem;
+    }
+
+    .cards-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 24px;
+        padding: 2rem 1.5rem;
+        width: 280px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #667eea20, #764ba220);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.2rem;
+    }
+
+    .feature-icon svg {
+        width: 34px;
+        height: 34px;
+        stroke: #667eea;
+        stroke-width: 1.7;
+    }
+
+    .feature-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.7rem;
+        color: #0f172a;
+    }
+
+    .feature-card p {
+        color: #475569;
+        line-height: 1.5;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 4rem 2rem;
+        text-align: center;
+        color: white;
+    }
+
+    .cta-section h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        opacity: 0.95;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .cta-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.8rem 1.8rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.25s ease;
+    }
+
+    .cta-btn-light {
+        background: white;
+        color: #667eea;
+    }
+
+    .cta-btn-light:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .cta-btn-outline-light {
+        border: 2px solid white;
+        color: white;
+        background: transparent;
+    }
+
+    .cta-btn-outline-light:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-content h1 {
+            font-size: 2.4rem;
+        }
+        .hero-content p {
+            font-size: 1rem;
+        }
+        .hero-btn {
+            padding: 0.7rem 1.4rem;
+            font-size: 0.9rem;
+        }
+        .features-section {
+            padding: 3rem 1rem;
+        }
+        .section-title {
+            font-size: 1.8rem;
+        }
+        .cta-section h2 {
+            font-size: 1.6rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Mobile Legends Background Image - Only on Homepage -->
+<div class="hero-section">
+    <div class="hero-content">
+        <h1>Welcome to Mobile Legends<br>Tournament System</h1>
+        <p>Dominate the battlefield, build legendary teams, and rise to glory.<br> 
+        Manage players, create tournaments, and track champions — all in one place.</p>
+        <div class="hero-buttons">
+            <a href="{% url 'tournament:list' %}" class="hero-btn hero-btn-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                Explore Tournaments
+            </a>
+            <a href="{% url 'players:list' %}" class="hero-btn hero-btn-outline">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Browse Players
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="features-section">
+    <h2 class="section-title">Everything You Need to Conquer</h2>
+    <div class="cards-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </div>
+            <h3>Live Tournaments</h3>
+            <p>Create & manage tournaments with bracket systems, schedule matches and track standings.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M1 21v-2c0-2.2 1.8-4 4-4h8c2.2 0 4 1.8 4 4v2"></path>
+                    <path d="M17 11l2 2 4-4"></path>
+                </svg>
+            </div>
+            <h3>Player Registry</h3>
+            <p>Keep track of all ML players, their roles, and performance stats in one dashboard.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+            </div>
+            <h3>Team Management</h3>
+            <p>Build balanced squads, assign captains, and manage team rosters for tournaments.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+            </div>
+            <h3>Match Scheduling</h3>
+            <p>Organize matches, set dates, and notify teams automatically about upcoming games.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Section -->
+<div class="cta-section">
+    <h2>Ready to Start Your Tournament Journey?</h2>
+    <p>Join now and experience the ultimate Mobile Legends tournament management system.</p>
+    <div class="cta-buttons">
+        <a href="{% url 'teams:team_list' %}" class="cta-btn cta-btn-light">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Create a Team
+        </a>
+        <a href="{% url 'players:add' %}" class="cta-btn cta-btn-outline-light">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/>
+            </svg>
+            Register as Player
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('ML Tournament System - Homepage Loaded');
+        
+        // Add a subtle parallax effect to hero section
+        const heroSection = document.querySelector('.hero-section');
+        if (heroSection) {
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                heroSection.style.backgroundPositionY = (30 + scrolled * 0.3) + '%';
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -10,4 +10,5 @@ urlpatterns = [
     path('edit/<int:pk>/', views.edit_player, name='edit'),
     path('delete/<int:pk>/', views.delete_player, name='delete'),
     path('detail/<int:pk>/', views.player_detail, name='detail'),
-]
+    path('', views.home, name='home'),
+]   

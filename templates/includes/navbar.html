@@ -1,178 +1,468 @@
 {% load static %}
-<!-- Navigation Bar - Reusable Component -->
-<nav class="navbar">
-    <div class="nav-container">
-        <a href="/" class="logo">
-            <img src="{% static 'image/sklogo.png' %}" alt="SK Logo" class="logo-image">
-        </a>
-        <ul class="nav-menu">
-            <li>
-                <a href="{% url 'players:add' %}" class="nav-link {% if 'players/add' in request.path %}active{% endif %}" title="Add Player">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="12" cy="8" r="4"></circle>
-                        <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"></path>
-                        <line x1="12" y1="2" x2="12" y2="14"></line>
-                        <line x1="6" y1="8" x2="18" y2="8"></line>
-                    </svg>
-                    <span>Add Player</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'players:list' %}" class="nav-link {% if 'players/list' in request.path or request.path == '/players/' %}active{% endif %}" title="View Players">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M1 21v-2c0-2.2 1.8-4 4-4h8c2.2 0 4 1.8 4 4v2"></path>
-                        <circle cx="15" cy="11" r="3"></circle>
-                        <path d="M19 13v5m0-2.5h-5m2.5-2.5h2.5"></path>
-                    </svg>
-                    <span>Players</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'teams:team_list' %}" class="nav-link {% if 'teams' in request.path and 'create' not in request.path %}active{% endif %}" title="View Teams">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span>Teams</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'tournament:list' %}" class="nav-link {% if 'tournament' in request.path %}active{% endif %}" title="Tournaments">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M6 9c0-1 1-2 2-2h8c1 0 2 1 2 2v8c0 1-1 2-2 2H8c-1 0-2-1-2-2z"></path>
-                        <path d="M9 5h6M9 19h6M5 12h14"></path>
-                        <circle cx="12" cy="12" r="1"></circle>
-                    </svg>
-                    <span>Tournaments</span>
-                </a>
-            </li>
-        </ul>
-    </div>
-</nav>
-
-<style>
-    .navbar {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 249, 250, 0.95) 100%);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    }
-    
-    .nav-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 1rem 2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 2rem;
-        flex-wrap: wrap;
-    }
-    
-    .logo {
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-    }
-    
-    .logo-image {
-        height: 40px;
-        width: auto;
-        max-width: 150px;
-        object-fit: contain;
-        transition: opacity 0.3s ease;
-    }
-    
-    .logo-image:hover {
-        opacity: 0.8;
-    }
-    
-    .nav-menu {
-        display: flex;
-        gap: 0.5rem;
-        list-style: none;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin: 0;
-        padding: 0;
-    }
-    
-    .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        text-decoration: none;
-        color: #475569;
-        font-weight: 500;
-        font-size: 0.95rem;
-        padding: 0.65rem 1.1rem;
-        border-radius: 8px;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        white-space: nowrap;
-        cursor: pointer;
-        border: 1px solid transparent;
-    }
-    
-    .nav-icon {
-        width: 20px;
-        height: 20px;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        flex-shrink: 0;
-    }
-    
-    .nav-link:hover {
-        color: #667eea;
-        background: rgba(102, 126, 234, 0.08);
-        border-color: rgba(102, 126, 234, 0.15);
-        transform: translateY(-1px);
-    }
-    
-    .nav-link.active {
-        color: #667eea;
-        background: rgba(102, 126, 234, 0.12);
-        border-color: rgba(102, 126, 234, 0.25);
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
-    }
-    
-    @media (max-width: 768px) {
-        .nav-container {
-            flex-direction: column;
-            gap: 1rem;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Tournament System | Home</title>
+    <style>
+        /* Reset and base styles (consistent with base.html) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .alert {
             padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error, .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        button, .btn {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover, .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* ========= HERO SECTION STYLES (Homepage specific) ========= */
+        .hero-section {
+            min-height: calc(100vh - 85px); /* Full viewport minus navbar approx */
+            background-image: url('{% static "image/hero-mobile-legends.jpeg" %}');
+            background-size: cover;
+            background-position: center 30%;
+            background-repeat: no-repeat;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Overlay for better text readability */
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.7) 100%);
+            backdrop-filter: brightness(0.85);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+            animation: fadeInUp 0.9s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff, #e0d7ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: none;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.92);
+            margin-bottom: 2rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.9rem 1.8rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            border: 1px solid transparent;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .hero-btn-primary {
+            background: #667eea;
+            border: none;
+            color: white;
+            box-shadow: 0 8px 18px rgba(102, 126, 234, 0.3);
+        }
+
+        .hero-btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-3px);
+            box-shadow: 0 14px 26px rgba(102, 126, 234, 0.4);
+        }
+
+        .hero-btn-outline:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Feature cards section (optional but adds value) */
+        .features-section {
+            background: #f8fafc;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 2.5rem;
+        }
+
+        .cards-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem 1.5rem;
+            width: 280px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.2rem;
+        }
+
+        .feature-icon svg {
+            width: 34px;
+            height: 34px;
+            stroke: #667eea;
+            stroke-width: 1.7;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.7rem;
+            color: #0f172a;
+        }
+
+        .feature-card p {
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.4rem;
+            }
+            .hero-content p {
+                font-size: 1rem;
+            }
+            .hero-btn {
+                padding: 0.7rem 1.4rem;
+                font-size: 0.9rem;
+            }
+            .features-section {
+                padding: 3rem 1rem;
+            }
+            .section-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar (Reusable component as per your navbar.html) -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                {% load static %}
+                <img src="{% static 'image/sklogo.png' %}" alt="SK Logo" class="logo-image">
+            </a>
+            <ul class="nav-menu">
+                <!-- NEW: Home link added as first item in navbar -->
+          <li>
+    <a href="{% url 'players:home' %}" class="nav-link {% if request.path == '/' %}active{% endif %}" title="Home">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2h-5v-8H9v8H4a2 2 0 0 1-2-2z"></path>
+        </svg>
+        <span>Home</span>
+    </a>
+</li>
+                <li>
+                    <a href="{% url 'players:add' %}" class="nav-link {% if 'players/add' in request.path %}active{% endif %}" title="Add Player">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="8" r="4"></circle>
+                            <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"></path>
+                            <line x1="12" y1="2" x2="12" y2="14"></line>
+                            <line x1="6" y1="8" x2="18" y2="8"></line>
+                        </svg>
+                        <span>Add Player</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'players:list' %}" class="nav-link {% if 'players/list' in request.path or request.path == '/players/' %}active{% endif %}" title="View Players">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M1 21v-2c0-2.2 1.8-4 4-4h8c2.2 0 4 1.8 4 4v2"></path>
+                            <circle cx="15" cy="11" r="3"></circle>
+                            <path d="M19 13v5m0-2.5h-5m2.5-2.5h2.5"></path>
+                        </svg>
+                        <span>Players</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'teams:team_list' %}" class="nav-link {% if 'teams' in request.path and 'create' not in request.path %}active{% endif %}" title="View Teams">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>Teams</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'tournament:list' %}" class="nav-link {% if 'tournament' in request.path %}active{% endif %}" title="Tournaments">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M6 9c0-1 1-2 2-2h8c1 0 2 1 2 2v8c0 1-1 2-2 2H8c-1 0-2-1-2-2z"></path>
+                            <path d="M9 5h6M9 19h6M5 12h14"></path>
+                            <circle cx="12" cy="12" r="1"></circle>
+                        </svg>
+                        <span>Tournaments</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <style>
+        /* Navbar styles (same as original with minor addition for active home) */
+        .navbar {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 249, 250, 0.95) 100%);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-image {
+            height: 40px;
+            width: auto;
+            max-width: 150px;
+            object-fit: contain;
+            transition: opacity 0.3s ease;
+        }
+        
+        .logo-image:hover {
+            opacity: 0.8;
         }
         
         .nav-menu {
-            width: 100%;
+            display: flex;
+            gap: 0.5rem;
+            list-style: none;
+            flex-wrap: wrap;
             justify-content: center;
-            gap: 0.3rem;
+            margin: 0;
+            padding: 0;
         }
         
         .nav-link {
-            padding: 0.6rem 0.9rem;
-            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: #475569;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.65rem 1.1rem;
+            border-radius: 8px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid transparent;
         }
         
         .nav-icon {
-            width: 18px;
-            height: 18px;
-        }
-    }
-    
-    @media (max-width: 500px) {
-        .nav-link span {
-            display: none;
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0;
         }
         
-        .nav-link {
-            padding: 0.6rem;
-            justify-content: center;
+        .nav-link:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.08);
+            border-color: rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
         }
-    }
-</style>
+        
+        .nav-link.active {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.12);
+            border-color: rgba(102, 126, 234, 0.25);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+        }
+        
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .nav-menu {
+                width: 100%;
+                justify-content: center;
+                gap: 0.3rem;
+            }
+            
+            .nav-link {
+                padding: 0.6rem 0.9rem;
+                font-size: 0.88rem;
+            }
+            
+            .nav-icon {
+                width: 18px;
+                height: 18px;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .nav-link span {
+                display: none;
+            }
+            
+            .nav-link {
+                padding: 0.6rem;
+                justify-content: center;
+            }
+        }
+    </style>
+
+    <!-- Optional: any extra JS or block -->
+    {% block extra_js %}{% endblock %}
+    <!-- Ensure that Django static files are loaded properly -->
+</body>
+</html>
