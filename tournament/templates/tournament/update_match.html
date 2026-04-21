@@ -18,7 +18,7 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 2rem auto;
             padding: 0 2rem;
         }
@@ -59,96 +59,163 @@
         }
         
         .teams-container {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 2rem;
             margin: 2rem 0;
         }
         
         .team-box {
-            flex: 1;
-            padding: 1.5rem;
-            border-radius: 10px;
+            padding: 2rem;
+            border-radius: 15px;
             text-align: center;
+            border: 3px solid #ddd;
+            transition: all 0.3s;
         }
         
         .team-a-box {
-            background: #d4edda;
-            border: 2px solid #28a745;
+            background: #f0f7ff;
+            border-color: #667eea;
         }
         
         .team-b-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
+            background: #fff8f0;
+            border-color: #ff9800;
         }
         
         .team-name {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-        
-        .form-group {
             margin-bottom: 1.5rem;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
             color: #333;
         }
         
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        .form-control:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .score-inputs {
-            display: flex;
-            gap: 1rem;
+        .score-display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #667eea;
             margin: 1rem 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .score-input {
-            flex: 1;
+        .team-b-box .score-display {
+            color: #ff9800;
         }
         
-        .radio-group {
+        .button-group {
             display: flex;
             gap: 1rem;
-            margin-top: 0.5rem;
+            justify-content: center;
+            margin: 1.5rem 0;
         }
         
-        .radio-option {
-            flex: 1;
-            padding: 1rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+        .score-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.8rem;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .score-btn-plus {
+            background: #28a745;
+        }
+        
+        .score-btn-plus:hover:not(:disabled) {
+            background: #218838;
+            transform: scale(1.05);
+        }
+        
+        .score-btn-minus {
+            background: #dc3545;
+        }
+        
+        .score-btn-minus:hover:not(:disabled) {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+        
+        .score-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .winner-selector {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .winner-selector h3 {
+            color: #333;
+            margin-bottom: 1rem;
             text-align: center;
         }
         
-        .radio-option:hover {
-            border-color: #667eea;
-            background: #f8f9fa;
+        .winner-buttons {
+            display: flex;
+            gap: 1rem;
         }
         
-        .radio-option input[type="radio"] {
-            margin-right: 0.5rem;
+        .winner-btn {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .winner-btn:hover {
+            border-color: #667eea;
+            background: #f0f7ff;
+        }
+        
+        .winner-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .winner-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .required-wins {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .button-group-bottom {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
         }
         
         .btn-submit {
-            width: 100%;
+            flex: 1;
             padding: 0.75rem;
             background: #28a745;
             color: white;
@@ -160,12 +227,17 @@
             transition: background 0.3s;
         }
         
-        .btn-submit:hover {
+        .btn-submit:hover:not(:disabled) {
             background: #218838;
         }
         
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .btn-cancel {
-            width: 100%;
+            flex: 1;
             padding: 0.75rem;
             background: #6c757d;
             color: white;
@@ -174,10 +246,9 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 1rem;
             text-decoration: none;
-            display: inline-block;
             text-align: center;
+            transition: background 0.3s;
         }
         
         .btn-cancel:hover {
@@ -202,19 +273,16 @@
             border: 1px solid #bee5eb;
         }
         
-        .required-wins {
-            font-size: 0.85rem;
-            color: #666;
-            text-align: center;
-            margin-top: 1rem;
-        }
-        
         @media (max-width: 768px) {
             .teams-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .winner-buttons {
                 flex-direction: column;
             }
             
-            .score-inputs {
+            .button-group-bottom {
                 flex-direction: column;
             }
         }
@@ -225,13 +293,12 @@
     
     <div class="container">
         <div class="update-card">
-            <h1>Update Match Result</h1>
+            <h1>📊 Update Match Result</h1>
             
             <div class="match-info">
                 <p><strong>Tournament:</strong> {{ match.tournament.name }}</p>
                 <p><strong>Round:</strong> {{ match.round_number }} - {{ match.get_stage_display }}</p>
                 <p><strong>Format:</strong> <span class="format-badge">{{ match.get_match_format_display }}</span></p>
-                <p><strong>Required Wins:</strong> {{ match.get_required_wins }} games to win the match</p>
             </div>
             
             {% if messages %}
@@ -242,78 +309,147 @@
                 {% endfor %}
             {% endif %}
             
-            <form method="post">
+            <form id="matchForm" method="post">
                 {% csrf_token %}
+                <input type="hidden" name="team_a_score" id="team_a_score" value="0">
+                <input type="hidden" name="team_b_score" id="team_b_score" value="0">
+                <input type="hidden" name="winner" id="winner_input" value="">
                 
                 <div class="teams-container">
+                    <!-- Team A -->
                     <div class="team-box team-a-box">
                         <div class="team-name">{{ match.team_a.name }}</div>
-                        <div class="radio-option">
-                            <input type="radio" name="winner" value="{{ match.team_a.id }}" id="winner_a" required>
-                            <label for="winner_a">Select as Winner</label>
+                        <div class="score-display" id="team_a_display">0</div>
+                        <div class="button-group">
+                            <button type="button" class="score-btn score-btn-minus" onclick="decrementScore('a')" id="minus_a">−</button>
+                            <button type="button" class="score-btn score-btn-plus" onclick="incrementScore('a')" id="plus_a">+</button>
                         </div>
                     </div>
                     
+                    <!-- Team B -->
                     <div class="team-box team-b-box">
                         <div class="team-name">{{ match.team_b.name }}</div>
-                        <div class="radio-option">
-                            <input type="radio" name="winner" value="{{ match.team_b.id }}" id="winner_b" required>
-                            <label for="winner_b">Select as Winner</label>
+                        <div class="score-display" id="team_b_display">0</div>
+                        <div class="button-group">
+                            <button type="button" class="score-btn score-btn-minus" onclick="decrementScore('b')" id="minus_b">−</button>
+                            <button type="button" class="score-btn score-btn-plus" onclick="incrementScore('b')" id="plus_b">+</button>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="score-inputs">
-                    <div class="score-input">
-                        <label for="team_a_score">{{ match.team_a.name }} Score</label>
-                        <input type="number" name="team_a_score" id="team_a_score" class="form-control" 
-                               min="0" max="3" value="0" required>
-                    </div>
-                    <div class="score-input">
-                        <label for="team_b_score">{{ match.team_b.name }} Score</label>
-                        <input type="number" name="team_b_score" id="team_b_score" class="form-control" 
-                               min="0" max="3" value="0" required>
                     </div>
                 </div>
                 
                 <div class="required-wins">
                     {% if match.match_format == 'bo1' %}
-                        <p>💡 Winner must have 1 point, loser 0 points</p>
+                        <p>💡 <strong>Best of 1:</strong> Winner must have 1 win (e.g., 1-0)</p>
                     {% elif match.match_format == 'bo3' %}
-                        <p>💡 Winner must have 2 points (e.g., 2-0 or 2-1)</p>
+                        <p>💡 <strong>Best of 3:</strong> Winner must have 2 wins (e.g., 2-0 or 2-1)</p>
                     {% elif match.match_format == 'bo5' %}
-                        <p>💡 Winner must have 3 points (e.g., 3-0, 3-1, or 3-2)</p>
+                        <p>💡 <strong>Best of 5:</strong> Winner must have 3 wins (e.g., 3-0, 3-1, or 3-2)</p>
                     {% endif %}
                 </div>
                 
-                <button type="submit" class="btn-submit">Submit Result</button>
-                <a href="{% url 'tournament:detail' match.tournament.id %}" class="btn-cancel">Cancel</a>
+                <div class="winner-selector">
+                    <h3>Select Winner</h3>
+                    <div class="winner-buttons">
+                        <button type="button" class="winner-btn" id="winner_a_btn" onclick="selectWinner('{{ match.team_a.id }}', 'a')" disabled>
+                            🏆 {{ match.team_a.name }}
+                        </button>
+                        <button type="button" class="winner-btn" id="winner_b_btn" onclick="selectWinner('{{ match.team_b.id }}', 'b')" disabled>
+                            🏆 {{ match.team_b.name }}
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="button-group-bottom">
+                    <button type="submit" class="btn-submit" id="submitBtn" disabled>Submit Result</button>
+                    <a href="{% url 'tournament:detail' match.tournament.id %}" class="btn-cancel">Cancel</a>
+                </div>
             </form>
         </div>
     </div>
     
     <script>
-        // Add validation for scores based on format
         const format = "{{ match.match_format }}";
-        const teamAScoreInput = document.getElementById('team_a_score');
-        const teamBScoreInput = document.getElementById('team_b_score');
+        let maxWins = format === 'bo1' ? 1 : (format === 'bo3' ? 2 : 3);
+        let selectedWinner = null;
         
-        function validateScores() {
-            let maxScore = 0;
-            if (format === 'bo1') maxScore = 1;
-            else if (format === 'bo3') maxScore = 2;
-            else if (format === 'bo5') maxScore = 3;
+        function incrementScore(team) {
+            const inputId = team === 'a' ? 'team_a_score' : 'team_b_score';
+            const displayId = team === 'a' ? 'team_a_display' : 'team_b_display';
+            const input = document.getElementById(inputId);
             
-            if (parseInt(teamAScoreInput.value) > maxScore) {
-                teamAScoreInput.value = maxScore;
-            }
-            if (parseInt(teamBScoreInput.value) > maxScore) {
-                teamBScoreInput.value = maxScore;
+            if (parseInt(input.value) < maxWins) {
+                input.value = parseInt(input.value) + 1;
+                document.getElementById(displayId).textContent = input.value;
+                updateWinnerButtons();
             }
         }
         
-        teamAScoreInput.addEventListener('change', validateScores);
-        teamBScoreInput.addEventListener('change', validateScores);
+        function decrementScore(team) {
+            const inputId = team === 'a' ? 'team_a_score' : 'team_b_score';
+            const displayId = team === 'a' ? 'team_a_display' : 'team_b_display';
+            const input = document.getElementById(inputId);
+            
+            if (parseInt(input.value) > 0) {
+                input.value = parseInt(input.value) - 1;
+                document.getElementById(displayId).textContent = input.value;
+                updateWinnerButtons();
+            }
+        }
+        
+        function updateWinnerButtons() {
+            const scoreA = parseInt(document.getElementById('team_a_score').value);
+            const scoreB = parseInt(document.getElementById('team_b_score').value);
+            const btnA = document.getElementById('winner_a_btn');
+            const btnB = document.getElementById('winner_b_btn');
+            
+            // Enable buttons if one team has the required wins
+            const aCanWin = scoreA === maxWins;
+            const bCanWin = scoreB === maxWins;
+            
+            btnA.disabled = !aCanWin;
+            btnB.disabled = !bCanWin;
+            
+            // Disable button for team that has fewer wins
+            if (scoreA < scoreB) btnA.disabled = true;
+            if (scoreB < scoreA) btnB.disabled = true;
+        }
+        
+        function selectWinner(teamId, team) {
+            selectedWinner = teamId;
+            document.getElementById('winner_input').value = teamId;
+            
+            // Update button styling
+            document.getElementById('winner_a_btn').classList.remove('selected');
+            document.getElementById('winner_b_btn').classList.remove('selected');
+            
+            if (team === 'a') {
+                document.getElementById('winner_a_btn').classList.add('selected');
+            } else {
+                document.getElementById('winner_b_btn').classList.add('selected');
+            }
+            
+            // Enable submit if winner is selected
+            document.getElementById('submitBtn').disabled = !selectedWinner;
+        }
+        
+        document.getElementById('matchForm').addEventListener('submit', function(e) {
+            const scoreA = parseInt(document.getElementById('team_a_score').value);
+            const scoreB = parseInt(document.getElementById('team_b_score').value);
+            
+            // Validate that at least one team has max wins
+            if (scoreA !== maxWins && scoreB !== maxWins) {
+                e.preventDefault();
+                alert(`Invalid score! One team must have ${maxWins} wins.`);
+                return false;
+            }
+            
+            // Validate that exactly one team has max wins
+            if (scoreA === maxWins && scoreB === maxWins) {
+                e.preventDefault();
+                alert('Invalid score! Only one team can have the maximum wins.');
+                return false;
+            }
+        });
     </script>
 </body>
 </html>
